@@ -6,23 +6,15 @@ package nl.melledijkstra.musicplayerclient.config;
  * in the application to store and get from the right place</p>
  */
 public class PreferenceKeys {
-
     // Private constructor because its a static class
     private PreferenceKeys() {}
 
-    /**
-     * The remote ip connection to be used for socket connection
-     */
+    // The remote ip connection to be used for socket connection
     public static final String HOST_IP = "host_ip";
 
-    /**
-     * The port of the server
-     */
+    // The port of the server
     public static final String HOST_PORT = "host_port";
 
-    /**
-     * Debug state. If true then remote connection is simulated.
-     */
+    // Debug state. If true then remote connection is simulated.
     public static final String DEBUG = "debug";
-
 }

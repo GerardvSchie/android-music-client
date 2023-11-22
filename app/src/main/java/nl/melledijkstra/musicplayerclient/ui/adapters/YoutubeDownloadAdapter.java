@@ -11,13 +11,10 @@ import java.util.ArrayList;
 import nl.melledijkstra.musicplayerclient.R;
 import nl.melledijkstra.musicplayerclient.melonplayer.YTDLDownload;
 
-/**
- * Created by melle on 19-12-2016.
- */
 public class YoutubeDownloadAdapter extends BaseAdapter{
 
-    private ArrayList<YTDLDownload> downloads;
-    private Context context;
+    ArrayList<YTDLDownload> downloads;
+    final Context context;
 
     public YoutubeDownloadAdapter(Context context, ArrayList<YTDLDownload> downloads) {
         this.context = context;

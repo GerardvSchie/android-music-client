@@ -1,22 +1,21 @@
 package nl.melledijkstra.musicplayerclient.ui.fragments;
 
-import android.app.ProgressDialog;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
-import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.GridView;
+import android.widget.ProgressBar;
+
+import androidx.annotation.Nullable;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import java.util.ArrayList;
 import java.util.Collections;
 
-import butterknife.BindView;
 import butterknife.ButterKnife;
-import butterknife.OnItemClick;
 import butterknife.Unbinder;
 import io.grpc.stub.StreamObserver;
 import nl.melledijkstra.musicplayerclient.App;
@@ -34,19 +33,16 @@ public class AlbumsFragment extends ServiceBoundFragment implements
 
     public static String TAG = "AlbumsFragment";
 
-    // UI
-    @BindView(R.id.gv_album_list)
     GridView albumGridView;
-    @BindView(R.id.album_swipe_refresh_layout)
     SwipeRefreshLayout swipeLayout;
-    private Unbinder unbinder;
+    Unbinder unbinder;
 
     // The shown albums
     ArrayList<AlbumModel> albumModels;
     AlbumAdapter albumGridAdapter;
 
     // progress indicator when retrieving albums
-    ProgressDialog progressDialog;
+    ProgressBar progressBar;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -58,19 +54,27 @@ public class AlbumsFragment extends ServiceBoundFragment implements
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        getActivity().setTitle(getString(R.string.albums));
+        requireActivity().setTitle(getString(R.string.albums));
         View layout = inflater.inflate(R.layout.fragment_albums, container, false);
         unbinder = ButterKnife.bind(this, layout);
 
         // get views
+        albumGridView = layout.requireViewById(R.id.gv_album_list);
         albumGridView.setAdapter(albumGridAdapter);
+        albumGridView.setOnItemClickListener((parent, view, position, id) -> {
+            AlbumModel albumModel = (position < albumModels.size()) ? albumModels.get(position) : null;
+            Log.i(TAG, "AlbumModel: " + albumModel);
+            if (albumModel != null) {
+                ((MainActivity) requireActivity()).showSongsFragment(albumModel);
+            }
+        });
 
+        swipeLayout = layout.requireViewById(R.id.album_swipe_refresh_layout);
         swipeLayout.setOnRefreshListener(this);
 
-        progressDialog = new ProgressDialog(getContext());
-        progressDialog.setIndeterminate(true);
-        progressDialog.setCancelable(true);
-        progressDialog.setMessage("Retrieving Albums...");
+        progressBar = new ProgressBar(requireContext());
+        progressBar.setVisibility(View.VISIBLE);
+        progressBar.setIndeterminate(true);
 
         return layout;
     }
@@ -79,14 +83,9 @@ public class AlbumsFragment extends ServiceBoundFragment implements
     public void onDestroyView() {
         super.onDestroyView();
         unbinder.unbind();
-        if (progressDialog.isShowing()) {
-            progressDialog.dismiss();
+        if (progressBar.isShown()) {
+            progressBar.setVisibility(View.GONE);
         }
-    }
-
-    @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
     }
 
     @Override
@@ -96,7 +95,7 @@ public class AlbumsFragment extends ServiceBoundFragment implements
 
     private void retrieveAlbumList() {
         if (isBound && boundService != null && boundService.musicPlayerStub != null) {
-            progressDialog.show();
+            progressBar.setVisibility(View.VISIBLE);
             // TODO: move this to service
             boundService.musicPlayerStub.retrieveAlbumList(MediaData.getDefaultInstance(), new StreamObserver<AlbumList>() {
                 @Override
@@ -107,7 +106,7 @@ public class AlbumsFragment extends ServiceBoundFragment implements
                     for (Album album : response.getAlbumListList()) {
                         albumModels.add(new AlbumModel(album));
                     }
-                    getActivity().runOnUiThread(() -> albumGridAdapter.notifyDataSetChanged());
+                    requireActivity().runOnUiThread(() -> albumGridAdapter.notifyDataSetChanged());
                 }
 
                 @Override
@@ -118,8 +117,8 @@ public class AlbumsFragment extends ServiceBoundFragment implements
                 @Override
                 public void onCompleted() {
                     Log.i(TAG, "onCompleted: album list call done");
-                    getActivity().runOnUiThread(() -> {
-                        progressDialog.hide();
+                    requireActivity().runOnUiThread(() -> {
+                        progressBar.setVisibility(View.GONE);
                         swipeLayout.setRefreshing(false);
                     });
                 }
@@ -143,12 +142,12 @@ public class AlbumsFragment extends ServiceBoundFragment implements
         retrieveAlbumList();
     }
 
-    @OnItemClick(R.id.gv_album_list)
+    @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         AlbumModel albumModel = (position < albumModels.size()) ? albumModels.get(position) : null;
         Log.i(TAG, "AlbumModel: " + albumModel);
         if (albumModel != null) {
-            ((MainActivity) getActivity()).showSongsFragment(albumModel);
+            ((MainActivity) requireActivity()).showSongsFragment(albumModel);
         }
     }
 }

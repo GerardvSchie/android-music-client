@@ -1,6 +1,5 @@
 package nl.melledijkstra.musicplayerclient.ui;
 
-import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -8,70 +7,57 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.preference.PreferenceManager;
-import android.support.v4.content.LocalBroadcastManager;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
-import butterknife.BindView;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import androidx.preference.PreferenceManager;
+
 import butterknife.ButterKnife;
-import butterknife.OnClick;
 import nl.melledijkstra.musicplayerclient.App;
 import nl.melledijkstra.musicplayerclient.MelonPlayerService;
 import nl.melledijkstra.musicplayerclient.R;
 import nl.melledijkstra.musicplayerclient.config.Constants;
 import nl.melledijkstra.musicplayerclient.config.PreferenceKeys;
 
-/**
- * <p>Created by Melle Dijkstra on 10-4-2016</p>
- */
 public class ConnectActivity extends AppCompatActivity {
+    static final String TAG = ConnectActivity.class.getSimpleName();
 
-    private static final String TAG = ConnectActivity.class.getSimpleName();
-
-    /**
-     * Application specific settings
-     */
+    // Application specific settings
     SharedPreferences mSettings;
 
-    /**
-     * UI Components
-     */
-    @BindView(R.id.edittext_ip)
+    // UI Components
     EditText mEditTextIP;
-    @BindView(R.id.button_connect)
     Button mBtnConnect;
+    ProgressBar mProgressBarConnect;
 
-    /**
-     * Dialog which is shown when connecting
-     */
-    ProgressDialog mConnectDialog;
-
-    private boolean mReceiverRegistered = false;
+    boolean mReceiverRegistered = false;
 
     // The connection service
     public MelonPlayerService mBoundService;
     // Variable for checking if service is bound
-    private boolean mBound = false;
+    boolean mBound = false;
 
-    private IntentFilter mBroadcastFilter;
-    private LocalBroadcastManager mBroadcastManager;
+    IntentFilter mBroadcastFilter;
+    LocalBroadcastManager mBroadcastManager;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        Log.i(TAG, "onCreate");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_connect);
         ButterKnife.bind(this);
-        Log.i(TAG, "onCreate");
 
         startService(new Intent(this, MelonPlayerService.class));
         bindService(new Intent(this, MelonPlayerService.class), mServiceConnection, Context.BIND_AUTO_CREATE);
@@ -85,19 +71,41 @@ public class ConnectActivity extends AppCompatActivity {
 
         mSettings = PreferenceManager.getDefaultSharedPreferences(this);
 
-        initializeUI();
+        createUI();
     }
 
-    /**
-     * Initializes all UI components
-     */
-    private void initializeUI() {
-        setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
+    public void createUI() {
+        setSupportActionBar(requireViewById(R.id.toolbar));
 
+        mEditTextIP = requireViewById(R.id.edittext_ip);
         mEditTextIP.setText(mSettings.getString(PreferenceKeys.HOST_IP, Constants.DEFAULT_IP));
-        mBtnConnect.requestFocus();
 
-        mConnectDialog = new ProgressDialog(this);
+        mProgressBarConnect = requireViewById(R.id.progressBar_connect);
+        mBtnConnect = requireViewById(R.id.button_connect);
+        mBtnConnect.requestFocus();
+        mBtnConnect.setOnClickListener(view -> {
+            if (App.DEBUG) {
+                startMainScreen();
+                return;
+            }
+
+            final String ip = mEditTextIP.getText().toString();
+
+            // Save the data
+            SharedPreferences.Editor editor = mSettings.edit();
+            editor.putString(PreferenceKeys.HOST_IP, ip);
+            editor.apply();
+            Log.v(TAG, "IP Saved to preferences (" + ip + ")");
+
+            // send broadcast to service that it needs to try connecting
+            LocalBroadcastManager.getInstance(ConnectActivity.this).sendBroadcast(new Intent(MelonPlayerService.INITIATE_CONNECTION));
+
+            mProgressBarConnect.setProgressTintList(ColorStateList.valueOf(Color.RED));
+            mProgressBarConnect.setVisibility(View.VISIBLE);
+        });
+
+        mProgressBarConnect.setVisibility(View.GONE);
+        mProgressBarConnect.setIndeterminate(true);
     }
 
     @Override
@@ -108,59 +116,58 @@ public class ConnectActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.action_settings:
-                Intent startSettings = new Intent(ConnectActivity.this, SettingsActivity.class);
-                startActivity(startSettings);
+        if (item.getItemId() == R.id.action_settings) {
+            Intent startSettings = new Intent(ConnectActivity.this, SettingsActivity.class);
+            startActivity(startSettings);
         }
         return super.onOptionsItemSelected(item);
     }
 
     @Override
     protected void onPause() {
-        Log.i(TAG, "onPause in ConnectActivity");
+        Log.i(TAG, "onPause");
         super.onPause();
         unregisterBroadcastReceiver();
     }
 
     @Override
     protected void onResume() {
+        Log.i(TAG, "onResume");
         super.onResume();
-        Log.i(TAG, getClass().getSimpleName() + " - onResume");
         if (mBoundService != null && mBoundService.isConnected()) {
             Log.v(TAG, "Already connected, opening main activity");
             startMainScreen();
         } else {
-            registerBroadcastReceiver();
             Log.v(TAG, "Not connected, staying in connect activity");
+            registerBroadcastReceiver();
         }
     }
 
     /**
      * Broadcast receiver which gets notified of events in the service
      */
-    private BroadcastReceiver bReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
+    final private BroadcastReceiver bReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
             Log.v(TAG, "BROADCAST RECEIVED: " + intent.getAction());
             String action = intent.getAction();
-            if (action != null) {
-                switch (action) {
-                    case MelonPlayerService.READY:
-                        // If service says it's connected then open MainActivity
-                        if (mConnectDialog.isShowing()) {
-                            mConnectDialog.dismiss();
-                        }
-                        startMainScreen();
-                        break;
-                    case MelonPlayerService.CONNECTFAILED:
-                        if (mConnectDialog.isShowing()) {
-                            mConnectDialog.dismiss();
-                        }
-                        String reason = (intent.getStringExtra("state") != null) ? ": " + intent.getStringExtra("state") : "";
-                        Toast.makeText(ConnectActivity.this, "Connect failed" + reason, Toast.LENGTH_SHORT).show();
-                        break;
-                }
+            assert action != null;
+
+            switch (action) {
+                case MelonPlayerService.READY:
+                    // If service says it's connected then open MainActivity
+                    if (mProgressBarConnect.isShown()) {
+                        mProgressBarConnect.setVisibility(View.GONE);
+                    }
+                    startMainScreen();
+                    break;
+                case MelonPlayerService.CONNECTFAILED:
+                    if (mProgressBarConnect.isShown()) {
+                        mProgressBarConnect.setVisibility(View.GONE);
+                    }
+                    String reason = (intent.getStringExtra("state") != null) ? ": " + intent.getStringExtra("state") : "";
+                    Toast.makeText(ConnectActivity.this, "Connect failed" + reason, Toast.LENGTH_SHORT).show();
+                    break;
             }
         }
     };
@@ -179,14 +186,19 @@ public class ConnectActivity extends AppCompatActivity {
         }
     }
 
-    private ServiceConnection mServiceConnection = new ServiceConnection() {
+    final private ServiceConnection mServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder binder) {
             Log.i(TAG, "onServiceConnected");
             MelonPlayerService.LocalBinder myBinder = (MelonPlayerService.LocalBinder) binder;
             mBoundService = myBinder.getService();
             mBound = true;
-            checkConnection();
+            if(mBoundService != null && mBoundService.isConnected()) {
+                Log.i(TAG, "service is connected, start main screen...");
+                startMainScreen();
+            } else {
+                Log.i(TAG, "checkConnection: service is not connected, do nothing");
+            }
         }
 
         @Override
@@ -195,18 +207,6 @@ public class ConnectActivity extends AppCompatActivity {
             mBound = false;
         }
     };
-
-    /**
-     * Checks if service is already connected
-     */
-    private void checkConnection() {
-        if(mBoundService != null && mBoundService.isConnected()) {
-            Log.i(TAG, "checkConnection: service is connected, start main screen...");
-            startMainScreen();
-        } else {
-            Log.i(TAG, "checkConnection: service is not connected, do nothing");
-        }
-    }
 
     /**
      * Transitions from Connection activity to MainActivity
@@ -218,28 +218,6 @@ public class ConnectActivity extends AppCompatActivity {
         overridePendingTransition(R.anim.slidein, R.anim.slideout);
     }
 
-    @OnClick(R.id.button_connect)
-    public void onConnectButtonClick(View v) {
-        if (!App.DEBUG) {
-            final String ip = mEditTextIP.getText().toString();
-
-            // Save the data
-            SharedPreferences.Editor editor = mSettings.edit();
-            editor.putString(PreferenceKeys.HOST_IP, ip);
-            editor.apply();
-            Log.v(TAG, "IP Saved to preferences ("+ip+")");
-
-            // send broadcast to service that it needs to try connecting
-            LocalBroadcastManager.getInstance(ConnectActivity.this).sendBroadcast(new Intent(MelonPlayerService.INITIATE_CONNECTION));
-
-            mConnectDialog.setMessage("Connecting to " + ip + " ...");
-            mConnectDialog.setCancelable(false);
-            mConnectDialog.show();
-        } else {
-            startMainScreen();
-        }
-    }
-
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -249,8 +227,8 @@ public class ConnectActivity extends AppCompatActivity {
             stopService(new Intent(this, MelonPlayerService.class));
         }
         unregisterBroadcastReceiver();
-        if(mConnectDialog.isShowing()) {
-            mConnectDialog.dismiss();
+        if(mProgressBarConnect.isShown()) {
+            mProgressBarConnect.setVisibility(View.GONE);
         }
         if (mServiceConnection != null && mBound) {
             unbindService(mServiceConnection);

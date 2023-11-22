@@ -1,6 +1,7 @@
 package nl.melledijkstra.musicplayerclient;
 
 import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -12,13 +13,14 @@ import android.content.SharedPreferences;
 import android.graphics.BitmapFactory;
 import android.os.Binder;
 import android.os.IBinder;
-import android.preference.PreferenceManager;
-import android.support.annotation.Nullable;
-import android.support.v4.content.LocalBroadcastManager;
-import android.support.v7.app.NotificationCompat;
 import android.telephony.TelephonyManager;
 import android.util.Log;
-import android.widget.Toast;
+
+import androidx.annotation.Nullable;
+import androidx.core.app.NotificationCompat;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import androidx.media.app.NotificationCompat.MediaStyle;
+import androidx.preference.PreferenceManager;
 
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
@@ -43,11 +45,9 @@ import nl.melledijkstra.musicplayerclient.melonplayer.SongModel;
 import nl.melledijkstra.musicplayerclient.ui.MainActivity;
 
 /**
- * <p>Created by Melle Dijkstra on 18-4-2016</p>
  * This service interacts with the MelonPlayer Server
  */
 public class MelonPlayerService extends Service implements MelonPlayer.StateUpdateListener {
-
     private static final String TAG = "MelonPlayerService";
 
     // BROADCAST MESSAGES
@@ -67,6 +67,7 @@ public class MelonPlayerService extends Service implements MelonPlayer.StateUpda
     private static final String ACTION_CLOSE = "nl.melledijksta.melonmusicplayer.ACTION_CLOSE";
 
     private static final int NOTIFICATION_ID = 955;
+    private static final String NOTIFICATION_ID_STRING = "nl.melledijkstra.melonmusicplayer.NOTIFICATION_ID";
 
     private static final String CHANNEL_ID = "nl.melledijkstra.melonmusicplayer.FOREGROUND_NOTIFICATION";
 
@@ -74,7 +75,7 @@ public class MelonPlayerService extends Service implements MelonPlayer.StateUpda
     private PhoneStateReceiver phoneStateReceiver;
 
     // BROADCASTS
-    private BroadcastReceiver mReceiver = new BroadcastReceiver() {
+    final BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
@@ -137,7 +138,7 @@ public class MelonPlayerService extends Service implements MelonPlayer.StateUpda
     /**
      * Runnable passed to grpc channel to run when state is changed
      */
-    private Runnable grpcStateChangeListener = new Runnable() {
+    final Runnable grpcStateChangeListener = new Runnable() {
         @Override
         public void run() {
             if (channel != null) {
@@ -170,14 +171,14 @@ public class MelonPlayerService extends Service implements MelonPlayer.StateUpda
         }
     };
 
-    private StreamObserver<MMPStatus> statusStreamObserver = new StreamObserver<MMPStatus>() {
+    final StreamObserver<MMPStatus> statusStreamObserver = new StreamObserver<MMPStatus>() {
         @Override
         public void onNext(MMPStatus newState) {
             melonPlayer.setState(newState);
             if (newState.getState() == MMPStatus.State.PLAYING) {
-                startForeground(NOTIFICATION_ID, musicPlaybackNotification);
+//                startForeground(NOTIFICATION_ID, musicPlaybackNotification);
             } else {
-                stopForeground(false);
+//                stopForeground(false);
             }
         }
 
@@ -243,8 +244,13 @@ public class MelonPlayerService extends Service implements MelonPlayer.StateUpda
             initiateConnection(false);
         }
 
-        notificationBuilder = new NotificationCompat.Builder(getApplicationContext());
+        notificationBuilder = new NotificationCompat.Builder(this, CHANNEL_ID);
         notificationManager = ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE));
+
+        // Register the channel with the system; you can't change the importance
+        NotificationChannel notificationChannel = new NotificationChannel(CHANNEL_ID, "Channel NAME", NotificationManager.IMPORTANCE_DEFAULT);
+        notificationChannel.setDescription("My description");
+        notificationManager.createNotificationChannel(notificationChannel);
     }
 
     @Override
@@ -350,12 +356,13 @@ public class MelonPlayerService extends Service implements MelonPlayer.StateUpda
         musicPlayerStub.registerMMPNotify(MMPStatusRequest.getDefaultInstance(), new StreamObserver<MMPStatus>() {
             @Override
             public void onNext(MMPStatus status) {
+                Log.d(TAG, "onNext called");
                 melonPlayer.setState(status);
                 // TODO: update the melonplayer and that should update notification
                 if (status.getState() == MMPStatus.State.PLAYING) {
-                    startForeground(NOTIFICATION_ID, musicPlaybackNotification);
+//                    startForeground(NOTIFICATION_ID, musicPlaybackNotification);
                 } else {
-                    stopForeground(false);
+//                    stopForeground(false);
                 }
                 SongModel song = melonPlayer.getCurrentSongModel();
                 String title = "-";
@@ -379,13 +386,14 @@ public class MelonPlayerService extends Service implements MelonPlayer.StateUpda
     }
 
     private void showNotification() {
-        Log.i(TAG, "showNotification");
-        if (musicPlaybackNotification == null) {
-            SongModel currentSong = melonPlayer.getCurrentSongModel();
-            String title = (currentSong != null) ? currentSong.getTitle() : "-";
-            musicPlaybackNotification = generatePlaybackNotification(title, melonPlayer.getState());
-        }
-        notificationManager.notify(NOTIFICATION_ID, musicPlaybackNotification);
+        // TODO GERARD Show notification!
+//        Log.i(TAG, "showNotification");
+//        if (musicPlaybackNotification == null) {
+//            SongModel currentSong = melonPlayer.getCurrentSongModel();
+//            String title = (currentSong != null) ? currentSong.getTitle() : "-";
+//            musicPlaybackNotification = generatePlaybackNotification(title, melonPlayer.getState());
+//        }
+//        notificationManager.notify(NOTIFICATION_ID, musicPlaybackNotification);
     }
 
     /**
@@ -396,8 +404,10 @@ public class MelonPlayerService extends Service implements MelonPlayer.StateUpda
     }
 
     private void removeNotification() {
-        Log.i(TAG, "removeNotification");
-        if (notificationManager != null) notificationManager.cancel(NOTIFICATION_ID);
+        if (notificationManager != null) {
+            Log.i(TAG, "removeNotification");
+            notificationManager.cancel(NOTIFICATION_ID);
+        }
     }
 
     /**
@@ -426,7 +436,7 @@ public class MelonPlayerService extends Service implements MelonPlayer.StateUpda
         notificationBuilder.addAction(R.drawable.ic_skip_next, "Next", generatePendingIntent(ACTION_NEXT)) // #3
                 .addAction(R.drawable.ic_repeat, "Repeat", generatePendingIntent(ACTION_REPEAT)) // #4
                 // Set the style to media player style
-                .setStyle(new NotificationCompat.MediaStyle()
+                .setStyle(new MediaStyle()
                         .setShowCancelButton(true)
                         .setCancelButtonIntent(generatePendingIntent(ACTION_CLOSE))
                         .setShowActionsInCompactView(0, 2, 4) // Show shuffle, play/pause, and repeat in compact modes
@@ -486,23 +496,43 @@ public class MelonPlayerService extends Service implements MelonPlayer.StateUpda
     }
 
     /**
-     * Updates the notitifation with new information
+     * Updates the notification with new information
      *
      * @param newTitle The new title of the notification
      * @param state    The state the music player is currently in
      */
     private void updateNotification(String newTitle, @Nullable MelonPlayer.States state) {
-        if (state != null) {
-            if (state == MelonPlayer.States.PLAYING) {
-                // TODO: set to pause button
-                //notificationBuilder.addAction(R.drawable.ic_pause, "Pause", generatePendingIntent(ACTION_PLAY_PAUSE));
-            } else {
-                // TODO: set to play button
-                //notificationBuilder.addAction(R.drawable.ic_play_arrow, "Play", generatePendingIntent(ACTION_PLAY_PAUSE));
-            }
-        }
-        notificationBuilder.setContentTitle(newTitle);
+        notificationBuilder = new NotificationCompat.Builder(this, CHANNEL_ID)
+                // Show controls on lock screen even when user hides sensitive content.
+                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+                .setSmallIcon(R.drawable.notification_icon)
+                // Add media control buttons that invoke intents in your media service
+                .addAction(R.drawable.ic_skip_previous, "Previous", generatePendingIntent(ACTION_PREV)) // #0
+                .addAction(R.drawable.ic_pause, "Pause", generatePendingIntent(ACTION_PLAY_PAUSE))  // #1
+                .addAction(R.drawable.ic_skip_next, "Next", generatePendingIntent(ACTION_NEXT))     // #2
+                // Apply the media style template.
+                .setStyle(new androidx.media.app.NotificationCompat.MediaStyle()
+                        .setShowActionsInCompactView(0, 1, 2 /* #1: pause button */))
+                .setContentTitle(newTitle)
+                .setContentText("My Awesome Band");
+
+        // notificationId is a unique int for each notification that you must define.
         notificationManager.notify(NOTIFICATION_ID, notificationBuilder.build());
+//        if (state != null) {
+//            if (state == MelonPlayer.States.PLAYING) {
+//                // TODO: set to pause button
+//                //notificationBuilder.addAction(R.drawable.ic_pause, "Pause", generatePendingIntent(ACTION_PLAY_PAUSE));
+//            } else {
+//                // TODO: set to play button
+//                //notificationBuilder.addAction(R.drawable.ic_play_arrow, "Play", generatePendingIntent(ACTION_PLAY_PAUSE));
+//            }
+//        }
+//        NotificationChannel channel = new NotificationChannel(NOTIFICATION_ID_STRING, "TESTNOTIFICATIONNAME", notificationManager.IMPORTANCE_DEFAULT);
+//        channel.setDescription("TestDescription");
+//
+//        notificationBuilder.setContentTitle(newTitle);
+//        notificationManager.createNotificationChannel(channel);
+//        notificationManager.notify(NOTIFICATION_ID, notificationBuilder.build());
     }
 
     public MelonPlayer getMelonPlayer() {
@@ -532,7 +562,12 @@ public class MelonPlayerService extends Service implements MelonPlayer.StateUpda
         public void onReceive(Context context, Intent intent) {
             try {
                 String state = intent.getStringExtra(TelephonyManager.EXTRA_STATE);
-                Log.i(TAG, "PhoneStateReceiver: receiving new phone status: "+state);
+                if (state == null) {
+                    Log.w(TAG, "received PhoneState is null");
+                    return;
+                }
+
+                Log.i(TAG, "PhoneStateReceiver: receiving new phone status: " + state);
                 // Check if phone is ringing
                 if (state.equals(TelephonyManager.EXTRA_STATE_RINGING)
                         || state.equals(TelephonyManager.EXTRA_STATE_OFFHOOK) && melonPlayer.getVolume() != -1) {
@@ -549,5 +584,4 @@ public class MelonPlayerService extends Service implements MelonPlayer.StateUpda
             }
         }
     }
-
 }

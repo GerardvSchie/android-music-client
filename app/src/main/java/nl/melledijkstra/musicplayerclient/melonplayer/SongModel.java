@@ -1,27 +1,16 @@
 package nl.melledijkstra.musicplayerclient.melonplayer;
 
+import androidx.annotation.NonNull;
+
 import nl.melledijkstra.musicplayerclient.grpc.Song;
 
 /**
  * <p>SongModel Model class that has all information about a specific song</p>
- * <p>Created by Melle Dijkstra on 14-4-2016</p>
  */
 public class SongModel implements Protoble<Song> {
-
-    /**
-     * The ID of the song
-     */
-    private long ID;
-
-    /**
-     * The title of the song
-     */
-    private String title;
-
-    /**
-     * The duration in seconds of the song
-     */
-    private long duration;
+    long ID;
+    String title;
+    long duration;
 
     public SongModel(Song exchangeData) {
         this.Hydrate(exchangeData);
@@ -41,7 +30,6 @@ public class SongModel implements Protoble<Song> {
     }
 
     // GETTERS
-
     public String getTitle() {
         return title;
     }
@@ -54,6 +42,7 @@ public class SongModel implements Protoble<Song> {
         return duration;
     }
 
+    @NonNull
     @Override
     public String toString() {
         return title;

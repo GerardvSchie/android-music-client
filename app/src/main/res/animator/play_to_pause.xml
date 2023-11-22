@@ -5,5 +5,6 @@
     android:valueFrom="M8,5v14l11,-7z"
     android:valueTo="M6,19h4L10,5L6,5v14zM14,5v14h4L18,5h-4z"
     android:duration="1"
+    android:interpolator="@android:interpolator/fast_out_slow_in"
     android:valueType="pathType"
     />

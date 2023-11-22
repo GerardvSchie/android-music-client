@@ -1,7 +1,9 @@
 package nl.melledijkstra.musicplayerclient.melonplayer;
 
 import android.graphics.Bitmap;
-import android.support.annotation.Nullable;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,36 +11,13 @@ import java.util.List;
 import nl.melledijkstra.musicplayerclient.grpc.Album;
 import nl.melledijkstra.musicplayerclient.grpc.Song;
 
-/**
- * <p>Created by melle on 19-5-2016.</p>
- */
 public class AlbumModel implements Protoble<Album> {
-
-    /**
-     * Identifier of an album
-     */
-    private long ID;
-
-    /**
-     * Title of album
-     */
-    private String title;
-
-    /**
-     * The cover of the album
-     */
+    long ID;
+    String title;
+    boolean favorite;
     @Nullable
-    private Bitmap cover;
-
-    /**
-     * The list of songs that this album contains
-     */
-    private ArrayList<SongModel> songModelList;
-
-    /**
-     * Check if this is a favorite album
-     */
-    private boolean favorite;
+    Bitmap cover;
+    ArrayList<SongModel> songModelList;
 
     public AlbumModel(Album exchangeData) {
         this.songModelList = new ArrayList<>();
@@ -99,8 +78,10 @@ public class AlbumModel implements Protoble<Album> {
         songModelList.addAll(songlist);
     }
 
+    @NonNull
     @Override
     public String toString() {
+        assert title != null : "Title should not be null";
         return title;
     }
 

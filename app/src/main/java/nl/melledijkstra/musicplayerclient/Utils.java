@@ -2,13 +2,7 @@ package nl.melledijkstra.musicplayerclient;
 
 import java.util.Locale;
 
-/**
- * <p>Created by melle on 28-4-2016.</p>
- */
 public class Utils {
-
-    private Utils() {}
-
     /**
      * Maps a value between a range (out_min and out_max)
      * @param val The value to map

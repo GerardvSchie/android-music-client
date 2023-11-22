@@ -4,7 +4,7 @@
     android:layout_height="match_parent"
     tools:context=".ui.fragments.AlbumsFragment">
 
-    <android.support.v4.widget.SwipeRefreshLayout
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/album_swipe_refresh_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
@@ -17,6 +17,6 @@
             android:id="@+id/gv_album_list"
             />
 
-    </android.support.v4.widget.SwipeRefreshLayout>
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
 </RelativeLayout>

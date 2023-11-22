@@ -10,21 +10,19 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.core.content.ContextCompat;
+
 import java.util.ArrayList;
+import java.util.Objects;
 
 import nl.melledijkstra.musicplayerclient.R;
 import nl.melledijkstra.musicplayerclient.melonplayer.AlbumModel;
 
-/**
- * <p>Created by melle on 2-10-2016.</p>
- */
-
 public class AlbumAdapter extends BaseAdapter {
+    static final String TAG = "AlbumAdapter";
 
-    private static final String TAG = "AlbumAdapter";
-
-    private Context mContext;
-    private ArrayList<AlbumModel> albumModels;
+    final Context mContext;
+    final ArrayList<AlbumModel> albumModels;
 
     public AlbumAdapter(Context c, ArrayList<AlbumModel> albumModels) {
         this.mContext = c;
@@ -58,9 +56,9 @@ public class AlbumAdapter extends BaseAdapter {
         }
 
         // AlbumModel title
-        TextView textView = (TextView) item.findViewById(R.id.album_title);
+        TextView textView = item.requireViewById(R.id.album_title);
         // AlbumModel cover
-        ImageView imageView = (ImageView) item.findViewById(R.id.album_cover);
+        ImageView imageView = item.requireViewById(R.id.album_cover);
         // Favorite btn
 //        final ImageView favoriteImage = (ImageView) item.findViewById(R.id.favoriteImageView);
 //        favoriteImage.setOnClickListener(new View.OnClickListener() {
@@ -79,7 +77,7 @@ public class AlbumAdapter extends BaseAdapter {
         if (albumModel != null) {
             cover = albumModel.getCover();
         }
-        imageView.setImageBitmap((cover != null) ? cover : ((BitmapDrawable) mContext.getResources().getDrawable(R.drawable.default_cover)).getBitmap());
+        imageView.setImageBitmap((cover != null) ? cover : ((BitmapDrawable) Objects.requireNonNull(ContextCompat.getDrawable(mContext, R.drawable.default_cover))).getBitmap());
 
         return item;
     }

@@ -1,7 +1,9 @@
 package nl.melledijkstra.musicplayerclient.melonplayer;
 
-import android.support.annotation.Nullable;
 import android.util.Log;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -10,20 +12,18 @@ import java.util.Locale;
 import nl.melledijkstra.musicplayerclient.grpc.MMPStatus;
 
 /**
- * <p>Created by Melle Dijkstra on 17-4-2016</p>
  * <p>
  * This class represents the Model object for the music player.
  * It's stores and updates the state of the music player server
  * </p>
  */
 public class MelonPlayer {
+    static final String TAG = "MelonPlayer";
 
-    private static final String TAG = "MelonPlayer";
+    // The singleton instance
+    static MelonPlayer instance;
 
-    /** The singleton instance */
-    private static MelonPlayer instance;
-
-    /** The different states the melon player can reside in */
+    // The different states the melon player can reside in
     public enum States {
         BUFFERING,
         PLAYING,
@@ -36,29 +36,28 @@ public class MelonPlayer {
     }
 
     /** The current volume of the melon player */
-    private int volume = -1;
+    int volume = -1;
 
     /** Flag if the melon player is muted */
-    private boolean mute = false;
+    boolean mute = false;
 
     /** Current state of the melon player */
-    private States state = States.NOTHINGSPECIAL;
+    States state = States.NOTHINGSPECIAL;
 
     /** Current list of albums */
     public ArrayList<AlbumModel> albumModels;
 
     /** The currently playing song */
     @Nullable
-    private SongModel currentSongModel = null;
+    SongModel currentSongModel = null;
 
     /** The current position of the song */
-    private float songPosition = -1f;
+    float songPosition = -1f;
 
     /** The elapsed time of the playing song */
-    private long elapsedTime = -1;
+    long elapsedTime = -1;
 
     // GETTERS
-
     @Nullable
     public SongModel getCurrentSongModel() {
         return currentSongModel;
@@ -84,7 +83,7 @@ public class MelonPlayer {
         return mute;
     }
 
-    private HashSet<StateUpdateListener> stateListeners;
+    final HashSet<StateUpdateListener> stateListeners;
 
     public void registerStateChangeListener(StateUpdateListener listener) {
         stateListeners.add(listener);
@@ -169,6 +168,7 @@ public class MelonPlayer {
         return null;
     }
 
+    @NonNull
     @Override
     public String toString() {
         return String.format(Locale.getDefault(), "[state: %s, volume: %d, albumcount: %d]", state, volume, albumModels.size());
@@ -180,5 +180,4 @@ public class MelonPlayer {
          */
         void MelonPlayerStateUpdated();
     }
-
 }

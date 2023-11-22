@@ -6,13 +6,12 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
 
 import nl.melledijkstra.musicplayerclient.MelonPlayerService;
 
 /**
- * Created by melle on 12-12-2016.
  * Fragment class that binds to MelonPlayerService automatically
  */
 
@@ -53,14 +52,14 @@ public class ServiceBoundFragment extends Fragment {
     protected void onBounded() {}
 
     void doBindService() {
-        getActivity().bindService(new Intent(getActivity(),
+        requireActivity().bindService(new Intent(getActivity(),
                 MelonPlayerService.class), serviceConnection, Context.BIND_AUTO_CREATE);
     }
 
     void doUnbindService() {
         if (isBound) {
             // Detach our existing connection.
-            getActivity().unbindService(serviceConnection);
+            requireActivity().unbindService(serviceConnection);
         }
     }
 
@@ -69,5 +68,4 @@ public class ServiceBoundFragment extends Fragment {
         super.onDestroy();
         doUnbindService();
     }
-
 }

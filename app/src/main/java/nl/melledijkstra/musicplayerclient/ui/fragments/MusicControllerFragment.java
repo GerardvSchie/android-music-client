@@ -2,7 +2,6 @@ package nl.melledijkstra.musicplayerclient.ui.fragments;
 
 import android.app.AlertDialog;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -12,12 +11,12 @@ import android.widget.ImageButton;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import androidx.annotation.Nullable;
+
 import java.util.Timer;
 import java.util.TimerTask;
 
-import butterknife.BindView;
 import butterknife.ButterKnife;
-import butterknife.OnClick;
 import butterknife.Unbinder;
 import nl.melledijkstra.musicplayerclient.R;
 import nl.melledijkstra.musicplayerclient.Utils;
@@ -28,54 +27,24 @@ import nl.melledijkstra.musicplayerclient.grpc.VolumeControl;
 import nl.melledijkstra.musicplayerclient.melonplayer.MelonPlayer;
 import nl.melledijkstra.musicplayerclient.melonplayer.SongModel;
 
-/**
- * <p>Created by Melle Dijkstra on 17-4-2016</p>
- */
 public class MusicControllerFragment extends ServiceBoundFragment implements MelonPlayer.StateUpdateListener {
+    static final String TAG = "MusicControllerFragment";
+    static int numberOfFrags = 0;
 
-    private static final String TAG = MusicControllerFragment.class.getSimpleName();
-    private static int numberOfFrags = 0;
+    SeekBar sbMusicTime, sbVolume;
+    ImageButton btnPrev, btnPlayPause, btnNext, btnChangeVolume;
+    TextView tvCurrentSong, tvCurPos, tvSongDuration;
 
-    @BindView(R.id.sbMusicTime)
-    SeekBar sbMusicTime;
-    // not managed by ButterKnife
-    SeekBar sbVolume;
-    @BindView(R.id.btnPreviousSong)
-    ImageButton btnPrev;
-    @BindView(R.id.btnPlayPause)
-    ImageButton btnPlayPause;
-    @BindView(R.id.btnNextSong)
-    ImageButton btnNext;
-    @BindView(R.id.btnChangeVolume)
-    ImageButton btnChangeVolume;
-    @BindView(R.id.tvCurrentSong)
-    TextView tvCurrentSong;
-    @BindView(R.id.tvSongCurPos)
-    TextView tvCurPos;
-    @BindView(R.id.tvSongDuration)
-    TextView tvSongDuration;
-    private Unbinder unbinder;
-
+    Unbinder unbinder;
     Timer timer;
-
     boolean isDragging;
-
     AlertDialog volumeDialog;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        numberOfFrags++;
         Log.d(TAG, "There are currently " + numberOfFrags + " control fragments running");
-
-        View dialogView = getActivity().getLayoutInflater().inflate(R.layout.change_volume_dialog, null);
-        // not managed by ButterKnife because it resides inside a dialog
-        sbVolume = (SeekBar) dialogView.findViewById(R.id.sbVolume);
-
-        volumeDialog = new AlertDialog.Builder(getContext())
-                .setTitle(R.string.change_volume)
-                .setView(dialogView)
-                .setOnKeyListener((dialog, keyCode, event) -> event.getAction() == KeyEvent.ACTION_DOWN && getActivity().onKeyDown(keyCode, event)).create();
+        numberOfFrags++;
     }
 
     @Override
@@ -83,9 +52,53 @@ public class MusicControllerFragment extends ServiceBoundFragment implements Mel
         View layout = inflater.inflate(R.layout.fragment_music_controller, container, false);
         unbinder = ButterKnife.bind(this, layout);
 
-        // get views
+        sbMusicTime = layout.requireViewById(R.id.sbMusicTime);
         sbMusicTime.setOnSeekBarChangeListener(onMusicTimeSeekbarChange);
+
+        // not managed by ButterKnife because it resides inside a dialog
+        View dialogView = requireActivity().getLayoutInflater().inflate(R.layout.change_volume_dialog, null);
+        sbVolume = dialogView.requireViewById(R.id.sbVolume);
         sbVolume.setOnSeekBarChangeListener(onVolumeSeekbarChange);
+
+        btnPrev = layout.requireViewById(R.id.btnPreviousSong);
+        btnPlayPause = layout.requireViewById(R.id.btnPlayPause);
+        btnNext = layout.requireViewById(R.id.btnNextSong);
+        btnChangeVolume = layout.requireViewById(R.id.btnChangeVolume);
+
+        tvCurrentSong = layout.requireViewById(R.id.tvCurrentSong);
+        tvCurPos = layout.requireViewById(R.id.tvSongCurPos);
+        tvSongDuration = layout.requireViewById(R.id.tvSongDuration);
+
+        volumeDialog = new AlertDialog.Builder(getContext())
+                .setTitle(R.string.change_volume)
+                .setView(dialogView)
+                .setOnKeyListener((dialog, keyCode, event) -> event.getAction() == KeyEvent.ACTION_DOWN && requireActivity().onKeyDown(keyCode, event)).create();
+
+        btnPlayPause.setOnClickListener(view -> {
+            if (isBound) {
+                boundService.musicPlayerStub.play(MediaControl.newBuilder()
+                        .setState(MediaControl.State.PAUSE).build(), boundService.defaultMMPResponseStreamObserver);
+            }
+        });
+
+        btnPrev.setOnClickListener(view -> {
+            if (isBound) {
+                boundService.musicPlayerStub.previous(PlaybackControl.getDefaultInstance(), boundService.defaultMMPResponseStreamObserver);
+            }
+        });
+
+        btnNext.setOnClickListener(view -> {
+            if (isBound) {
+                boundService.musicPlayerStub.next(PlaybackControl.getDefaultInstance(), boundService.defaultMMPResponseStreamObserver);
+            }
+        });
+
+        btnChangeVolume.setOnClickListener(view -> {
+            if (isBound && sbVolume != null) {
+                sbVolume.setProgress(boundService.getMelonPlayer().getVolume());
+            }
+            volumeDialog.show();
+        });
 
         return layout;
     }
@@ -94,12 +107,6 @@ public class MusicControllerFragment extends ServiceBoundFragment implements Mel
     public void onDestroyView() {
         super.onDestroyView();
         unbinder.unbind();
-    }
-
-    @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-        Log.v(TAG, "Fragment created");
     }
 
     @Override
@@ -115,37 +122,7 @@ public class MusicControllerFragment extends ServiceBoundFragment implements Mel
         boundService.getMelonPlayer().unRegisterStateChangeListener(this);
     }
 
-    @OnClick(R.id.btnPlayPause)
-    public void onPlayPauseClick() {
-        if (isBound) {
-            boundService.musicPlayerStub.play(MediaControl.newBuilder()
-                    .setState(MediaControl.State.PAUSE).build(), boundService.defaultMMPResponseStreamObserver);
-        }
-    }
-
-    @OnClick(R.id.btnPreviousSong)
-    public void onPreviousSongClick() {
-        if (isBound) {
-            boundService.musicPlayerStub.previous(PlaybackControl.getDefaultInstance(), boundService.defaultMMPResponseStreamObserver);
-        }
-    }
-
-    @OnClick(R.id.btnNextSong)
-    public void onNextSongClick() {
-        if (isBound) {
-            boundService.musicPlayerStub.next(PlaybackControl.getDefaultInstance(), boundService.defaultMMPResponseStreamObserver);
-        }
-    }
-
-    @OnClick(R.id.btnChangeVolume)
-    public void onChangeVolumeClick() {
-        if (isBound && sbVolume != null) {
-            sbVolume.setProgress(boundService.getMelonPlayer().getVolume());
-        }
-        volumeDialog.show();
-    }
-
-    private SeekBar.OnSeekBarChangeListener onVolumeSeekbarChange = new SeekBar.OnSeekBarChangeListener() {
+    final SeekBar.OnSeekBarChangeListener onVolumeSeekbarChange = new SeekBar.OnSeekBarChangeListener() {
         @Override
         public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
             if (fromUser && progress % 3 == 0) {
@@ -171,7 +148,7 @@ public class MusicControllerFragment extends ServiceBoundFragment implements Mel
         }
     };
 
-    private SeekBar.OnSeekBarChangeListener onMusicTimeSeekbarChange = new SeekBar.OnSeekBarChangeListener() {
+    final private SeekBar.OnSeekBarChangeListener onMusicTimeSeekbarChange = new SeekBar.OnSeekBarChangeListener() {
         @Override
         public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
             if (fromUser) {
@@ -245,7 +222,7 @@ public class MusicControllerFragment extends ServiceBoundFragment implements Mel
     public void MelonPlayerStateUpdated() {
         // This call can be invoked from another thread
         // So make sure we are update UI on the UI thread
-        getActivity().runOnUiThread(() -> {
+        requireActivity().runOnUiThread(() -> {
             MelonPlayer melonPlayer = boundService.getMelonPlayer();
             int curPosition = Math.round(melonPlayer.getSongPosition());
             // Don't update the music time seekbar when user is dragging

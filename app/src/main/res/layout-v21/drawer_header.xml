@@ -1,25 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/drawer_header"
     android:layout_width="match_parent"
+    android:layout_height="wrap_content"
     android:padding="10dp"
-    android:paddingBottom="0dp"
-    android:layout_height="wrap_content">
+    android:paddingBottom="0dp">
 
     <ImageView
-        android:src="@mipmap/app_logo"
+        android:id="@+id/app_logo"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="10dp"
-        android:id="@+id/app_logo"
-        android:contentDescription="@string/app_logo" />
+        android:contentDescription="@string/app_logo"
+        android:src="@mipmap/app_logo" />
 
     <TextView
-        android:text="@string/app_name"
-        android:textSize="17sp"
+        android:id="@+id/app_name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/app_name"
         android:layout_centerVertical="true"
-        android:layout_toEndOf="@+id/app_logo" />
+        android:layout_toEndOf="@+id/app_logo"
+        android:text="@string/app_name"
+        android:textSize="17sp" />
 
 </RelativeLayout>

@@ -1,31 +1,31 @@
 package nl.melledijkstra.musicplayerclient.ui.fragments;
 
 import android.app.AlertDialog;
-import android.app.ProgressDialog;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
-import android.support.v4.widget.SwipeRefreshLayout;
-import android.support.v7.widget.DefaultItemAnimator;
-import android.support.v7.widget.DividerItemDecoration;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.util.Log;
-import android.view.ContextMenu;
 import android.view.LayoutInflater;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
-import android.widget.PopupMenu;
 import android.widget.Spinner;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.widget.PopupMenu.OnMenuItemClickListener;
+import androidx.core.widget.ContentLoadingProgressBar;
+import androidx.recyclerview.widget.DefaultItemAnimator;
+import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import java.util.ArrayList;
 import java.util.Collections;
 
-import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
 import io.grpc.stub.StreamObserver;
@@ -42,22 +42,16 @@ import nl.melledijkstra.musicplayerclient.melonplayer.AlbumModel;
 import nl.melledijkstra.musicplayerclient.melonplayer.SongModel;
 import nl.melledijkstra.musicplayerclient.ui.adapters.SongAdapter;
 
-public class SongsFragment extends ServiceBoundFragment implements SongAdapter.RecyclerItemClickListener, PopupMenu.OnMenuItemClickListener {
-
-    private static final String TAG = "SongsFragment";
-
-    @BindView(R.id.song_swipe_refresh_layout) SwipeRefreshLayout refreshSwipeLayout;
-    @BindView(R.id.songListView) RecyclerView songListRecyclerView;
-    private Unbinder unbinder;
-
-    private long albumid;
-
-    private ArrayList<SongModel> songModels;
-
+public class SongsFragment extends ServiceBoundFragment implements SongAdapter.RecyclerItemClickListener, OnMenuItemClickListener {
+    static final String TAG = "SongsFragment";
+    SwipeRefreshLayout refreshSwipeLayout;
+    RecyclerView songListRecyclerView;
+    Unbinder unbinder;
+    long albumid;
+    ArrayList<SongModel> songModels;
     // ListAdapter that dynamically fills the music list
-    private SongAdapter songListAdapter;
-    private ProgressDialog progressDialog;
-
+    SongAdapter songListAdapter;
+    ContentLoadingProgressBar progressBarSong;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -73,19 +67,21 @@ public class SongsFragment extends ServiceBoundFragment implements SongAdapter.R
         unbinder = ButterKnife.bind(this, layout);
 
         // refreshlayout
+        refreshSwipeLayout = layout.requireViewById(R.id.song_swipe_refresh_layout);
         refreshSwipeLayout.setOnRefreshListener(onRefreshListener);
 
         // recyclerview
         songListAdapter = new SongAdapter(songModels, this, this);
+        songListRecyclerView = layout.requireViewById(R.id.songListView);
         songListRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         songListRecyclerView.setItemAnimator(new DefaultItemAnimator());
         songListRecyclerView.setAdapter(songListAdapter);
-        songListRecyclerView.addItemDecoration(new DividerItemDecoration(getContext(), LinearLayoutManager.VERTICAL));
+        songListRecyclerView.addItemDecoration(new DividerItemDecoration(requireContext(), LinearLayoutManager.VERTICAL));
 
         // dialog
-        progressDialog = new ProgressDialog(getContext());
-        progressDialog.setIndeterminate(true);
-        progressDialog.setMessage("Retrieving Songs...");
+        progressBarSong = layout.requireViewById(R.id.progressBarSong);
+        progressBarSong.setIndeterminate(true);
+        progressBarSong.setProgressTintList(ColorStateList.valueOf(Color.RED));
 
         return layout;
     }
@@ -99,67 +95,62 @@ public class SongsFragment extends ServiceBoundFragment implements SongAdapter.R
     @Override
     public boolean onMenuItemClick(MenuItem item) {
         Integer position = songListAdapter.getPosition();
-        if(position != null) {
-            final SongModel songModel = songModels.get(position);
-            switch (item.getItemId()) {
-                case R.id.menu_play_next:
-                    if (isBound) {
-                        boundService.musicPlayerStub.addNext(MediaData.newBuilder()
-                                .setType(MediaType.SONG)
-                                .setId(songModel.getID()).build(), boundService.defaultMMPResponseStreamObserver);
-                    }
-                    break;
-                case R.id.menu_rename:
-                    View renameSongDialog = getActivity().getLayoutInflater().inflate(R.layout.rename_song_dialog, null);
-                    final EditText edRenameSong = ((EditText) renameSongDialog.findViewById(R.id.edRenameSong));
-                    edRenameSong.setText(songModel.getTitle());
-                    new AlertDialog.Builder(getContext()).setIcon(R.drawable.ic_mode_edit)
-                            .setTitle(R.string.rename)
-                            .setView(renameSongDialog)
-                            .setNegativeButton(R.string.cancel, null)
-                            .setPositiveButton(R.string.rename, (dialog, which) -> {
-                                if (isBound) {
-                                    boundService.dataManagerStub.renameSong(RenameData.newBuilder()
-                                            .setId(songModel.getID())
-                                            .setNewTitle(edRenameSong.getText().toString()).build(), boundService.defaultMMPResponseStreamObserver);
-                                }
-                            }).show();
-                    break;
-                case R.id.menu_move:
-                    if (isBound) {
-                        View moveSongDialog = getActivity().getLayoutInflater().inflate(R.layout.move_song_dialog, null);
-                        final Spinner spinnerAlbums = ((Spinner) moveSongDialog.findViewById(R.id.spinnerAlbums));
-                        spinnerAlbums.setAdapter(new ArrayAdapter<>(getContext(), android.R.layout.simple_list_item_1, boundService.getMelonPlayer().albumModels));
-                        new AlertDialog.Builder(getContext())
-                                .setIcon(R.drawable.ic_reply)
-                                .setTitle(R.string.move)
-                                .setView(moveSongDialog)
-                                .setNegativeButton(R.string.cancel, null)
-                                .setPositiveButton(R.string.move, (dialog, which) -> {
-                                    AlbumModel selectedAlbum = ((AlbumModel) spinnerAlbums.getSelectedItem());
-                                    if(selectedAlbum != null) {
-                                        boundService.dataManagerStub.moveSong(MoveData.newBuilder()
-                                                .setSongId(songModel.getID())
-                                                .setAlbumId(selectedAlbum.getID())
-                                                .build(), boundService.defaultMMPResponseStreamObserver);
-                                    }
-                                }).show();
-                    }
-                    break;
-                case R.id.menu_delete:
-                    new AlertDialog.Builder(getContext())
-                            .setIcon(R.drawable.ic_action_trash)
-                            .setTitle(R.string.delete)
-                            .setMessage("Do you really want to delete '" + songModel.getTitle() + "'?")
-                            .setNegativeButton(R.string.cancel, null)
-                            .setPositiveButton(R.string.delete, (dialog, which) -> {
-                                if (isBound) {
-                                    boundService.dataManagerStub.deleteSong(MediaData.newBuilder()
-                                            .setId(songModel.getID()).build(), boundService.defaultMMPResponseStreamObserver);
-                                }
-                            }).show();
-                    break;
+        assert position != null : "Song list adapter";
+        final SongModel songModel = songModels.get(position);
+        int itemId = item.getItemId();
+        if (itemId == R.id.menu_play_next) {
+            if (isBound) {
+                boundService.musicPlayerStub.addNext(MediaData.newBuilder()
+                        .setType(MediaType.SONG)
+                        .setId(songModel.getID()).build(), boundService.defaultMMPResponseStreamObserver);
             }
+        } else if (itemId == R.id.menu_rename) {
+            View renameSongDialog = requireActivity().getLayoutInflater().inflate(R.layout.rename_song_dialog, null);
+            final EditText edRenameSong = renameSongDialog.requireViewById(R.id.edRenameSong);
+            edRenameSong.setText(songModel.getTitle());
+            new AlertDialog.Builder(getContext()).setIcon(R.drawable.ic_mode_edit)
+                    .setTitle(R.string.rename)
+                    .setView(renameSongDialog)
+                    .setNegativeButton(R.string.cancel, null)
+                    .setPositiveButton(R.string.rename, (dialog, which) -> {
+                        if (isBound) {
+                            boundService.dataManagerStub.renameSong(RenameData.newBuilder()
+                                    .setId(songModel.getID())
+                                    .setNewTitle(edRenameSong.getText().toString()).build(), boundService.defaultMMPResponseStreamObserver);
+                        }
+                    }).show();
+        } else if (itemId == R.id.menu_move) {
+            if (isBound) {
+                View moveSongDialog = requireActivity().getLayoutInflater().inflate(R.layout.move_song_dialog, null);
+                final Spinner spinnerAlbums = moveSongDialog.requireViewById(R.id.spinnerAlbums);
+                spinnerAlbums.setAdapter(new ArrayAdapter<>(requireContext(), android.R.layout.simple_list_item_1, boundService.getMelonPlayer().albumModels));
+                new AlertDialog.Builder(getContext())
+                        .setIcon(R.drawable.ic_reply)
+                        .setTitle(R.string.move)
+                        .setView(moveSongDialog)
+                        .setNegativeButton(R.string.cancel, null)
+                        .setPositiveButton(R.string.move, (dialog, which) -> {
+                            AlbumModel selectedAlbum = ((AlbumModel) spinnerAlbums.getSelectedItem());
+                            if (selectedAlbum != null) {
+                                boundService.dataManagerStub.moveSong(MoveData.newBuilder()
+                                        .setSongId(songModel.getID())
+                                        .setAlbumId(selectedAlbum.getID())
+                                        .build(), boundService.defaultMMPResponseStreamObserver);
+                            }
+                        }).show();
+            }
+        } else if (itemId == R.id.menu_delete) {
+            new AlertDialog.Builder(getContext())
+                    .setIcon(R.drawable.ic_action_trash)
+                    .setTitle(R.string.delete)
+                    .setMessage("Do you really want to delete '" + songModel.getTitle() + "'?")
+                    .setNegativeButton(R.string.cancel, null)
+                    .setPositiveButton(R.string.delete, (dialog, which) -> {
+                        if (isBound) {
+                            boundService.dataManagerStub.deleteSong(MediaData.newBuilder()
+                                    .setId(songModel.getID()).build(), boundService.defaultMMPResponseStreamObserver);
+                        }
+                    }).show();
         }
         return super.onContextItemSelected(item);
     }
@@ -170,16 +161,16 @@ public class SongsFragment extends ServiceBoundFragment implements SongAdapter.R
     }
 
     @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-        albumid = getArguments().getLong("albumid", -1);
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
         Log.d(TAG, "albumid: " + albumid);
+        albumid = requireArguments().getLong("albumid", -1);
         retrieveSongList();
     }
 
     private void retrieveSongList() {
         if (isBound) {
-            progressDialog.show();
+            progressBarSong.setVisibility(View.VISIBLE);
             // TODO: move this to service
             boundService.musicPlayerStub.retrieveSongList(MediaData.newBuilder().setId(albumid).build(), new StreamObserver<SongList>() {
                 @Override
@@ -188,7 +179,7 @@ public class SongsFragment extends ServiceBoundFragment implements SongAdapter.R
                     for (Song song : response.getSongListList()) {
                         songModels.add(new SongModel(song));
                     }
-                    getActivity().runOnUiThread(() -> songListAdapter.notifyDataSetChanged());
+                    requireActivity().runOnUiThread(() -> songListAdapter.notifyDataSetChanged());
                 }
 
                 @Override
@@ -199,13 +190,17 @@ public class SongsFragment extends ServiceBoundFragment implements SongAdapter.R
                 @Override
                 public void onCompleted() {
                     Log.i(TAG, "onCompleted: retrieving songs done");
-                    getActivity().runOnUiThread(() -> {
-                        progressDialog.hide();
+                    requireActivity().runOnUiThread(() -> {
+                        progressBarSong.setVisibility(View.GONE);
                         refreshSwipeLayout.setRefreshing(false);
                     });
                 }
             });
-        } else if (App.DEBUG) {
+
+            return;
+        }
+
+        if (App.DEBUG) {
             songModels.clear();
             Collections.addAll(songModels,
                     new SongModel(0, "Artist - Test Song #1", 1000),
@@ -220,18 +215,13 @@ public class SongsFragment extends ServiceBoundFragment implements SongAdapter.R
     /**
      * SongModel ListView Refresh action that populates the ListView with songs
      */
-    private SwipeRefreshLayout.OnRefreshListener onRefreshListener = this::retrieveSongList;
-
-    @Override
-    public void onResume() {
-        super.onResume();
-    }
+    final SwipeRefreshLayout.OnRefreshListener onRefreshListener = this::retrieveSongList;
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        if (progressDialog.isShowing()) {
-            progressDialog.dismiss();
+        if (progressBarSong.isShown()) {
+            progressBarSong.setVisibility(View.GONE);
         }
     }
 
