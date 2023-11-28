@@ -6,7 +6,7 @@
     android:id="@+id/main_drawer_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="ui.MainActivity">
+    tools:context=".ui.main.MainActivity">
 
     <!-- The contents of the screen -->
     <RelativeLayout
@@ -27,7 +27,7 @@
             android:layout_above="@+id/fragment_music_controls" />
 
         <androidx.fragment.app.FragmentContainerView
-            android:name="nl.melledijkstra.musicplayerclient.ui.fragments.MusicControllerFragment"
+            android:name="nl.melledijkstra.musicplayerclient.ui.main.controller.ControllerFragment"
             android:id="@+id/fragment_music_controls"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

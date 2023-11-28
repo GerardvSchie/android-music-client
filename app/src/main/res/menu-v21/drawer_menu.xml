@@ -8,11 +8,6 @@
             android:icon="@drawable/ic_music_note_black_24dp"
             android:title="Music Player" />
 
-        <item
-            android:id="@+id/drawer_youtube"
-            android:icon="@drawable/ic_action_youtube"
-            android:title="Youtube" />
-
         <item android:title="More">
             <menu>
                 <item

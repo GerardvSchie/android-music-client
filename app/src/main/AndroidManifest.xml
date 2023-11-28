@@ -20,7 +20,7 @@
 
         <!-- Connect Activity when app starts -->
         <activity
-            android:name=".ui.ConnectActivity"
+            android:name=".ui.connect.ConnectActivity"
             android:screenOrientation="fullSensor"
             android:exported="true">
             <intent-filter>
@@ -29,14 +29,14 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".ui.MainActivity"
+            android:name=".ui.main.MainActivity"
             android:screenOrientation="fullSensor"
             android:theme="@style/AppTheme.NoActionBar">
         </activity>
         <activity
-            android:name=".ui.SettingsActivity"
+            android:name=".ui.settings.SettingsActivity"
             android:label="@string/settings_activity_title"
             android:theme="@style/AppTheme.WithActionBar" />
-        <service android:name=".MelonPlayerService" />
+        <service android:name=".service.PlayerService" />
     </application>
 </manifest>
