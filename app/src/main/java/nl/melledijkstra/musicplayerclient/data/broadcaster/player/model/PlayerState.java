@@ -20,10 +20,10 @@ public enum PlayerState {
     public static PlayerState valueOfOrNothing(MMPStatus.State state) {
         try {
             PlayerState playerState = PlayerState.valueOf(state.toString());
-            Log.d(TAG, "State '" + playerState + "' parsed");
+            Log.d(TAG, "Parsed: " + playerState);
             return playerState;
         } catch (IllegalArgumentException exception) {
-            Log.w(TAG, "State '" + state + "' could not be parsed to a PlayerState, returning NOTHING_SPECIAL");
+            Log.w(TAG, "'" + state + "' could not be parsed to a PlayerState, returning NOTHING_SPECIAL");
             return NOTHING_SPECIAL;
         }
     }

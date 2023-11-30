@@ -1,15 +1,17 @@
 package nl.melledijkstra.musicplayerclient.ui.main.album;
 
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.BaseAdapter;
+import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
 import java.util.ArrayList;
@@ -18,15 +20,25 @@ import java.util.Objects;
 import nl.melledijkstra.musicplayerclient.R;
 import nl.melledijkstra.musicplayerclient.data.broadcaster.player.model.Album;
 
-public class AlbumAdapter extends BaseAdapter {
+public class AlbumAdapter extends ArrayAdapter<Album> {
     static final String TAG = "AlbumAdapter";
+    private ArrayList<Album> albums = new ArrayList<>();
+    private int custom_layout_id;
 
-    final Context mContext;
-    final ArrayList<Album> albums;
+    public AlbumAdapter(Context context, int resource) {
+        super(context, resource);
+        Log.i(TAG, String.format("Created with %d albums", getCount()));
+        custom_layout_id = resource;
+    }
 
-    public AlbumAdapter(Context c, ArrayList<Album> albums) {
-        this.mContext = c;
-        this.albums = albums;
+    @Nullable
+    @Override
+    public Album getItem(int position) {
+        if (position >= getCount()) {
+            return null;
+        }
+
+        return albums.get(position);
     }
 
     @Override
@@ -34,33 +46,30 @@ public class AlbumAdapter extends BaseAdapter {
         return albums.size();
     }
 
+    @NonNull
     @Override
-    public Album getItem(int position) {
-        return albums.get(position);
-    }
-
-    @Override
-    public long getItemId(int position) {
-        return 0;
-    }
-
-    @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
-        // TODO: This method needs improvement
-        View item;
-        Album album = (position <= albums.size()) ? albums.get(position) : null;
-        if(convertView == null) {
-            item = LayoutInflater.from(mContext).inflate(R.layout.album_item, null);
-        } else {
-            item = convertView;
+    public View getView(int i, View view, ViewGroup viewGroup) {
+        Log.v(TAG, "getView of i=" + i);
+        Context context = viewGroup.getContext();
+        if(view == null) {
+            view = LayoutInflater.from(context).inflate(R.layout.album_item, null);
         }
 
-        // AlbumModel title
-        TextView textView = item.requireViewById(R.id.album_title);
-        // AlbumModel cover
-        ImageView imageView = item.requireViewById(R.id.album_cover);
-        // Favorite btn
-//        final ImageView favoriteImage = (ImageView) item.findViewById(R.id.favoriteImageView);
+        Album album = getItem(i);
+        assert album != null;
+
+        TextView textView = view.requireViewById(R.id.album_title);
+        textView.setText(album.Title);
+
+        ImageView imageView = view.requireViewById(R.id.album_cover);
+        if (album.Cover != null) {
+            imageView.setImageBitmap(album.Cover);
+        } else {
+            imageView.setImageBitmap(((BitmapDrawable) Objects.requireNonNull(ContextCompat.getDrawable(context, R.drawable.default_cover))).getBitmap());
+        }
+
+//        // Favorite btn
+//        ImageView favoriteImage = view.requireViewById(R.id.favoriteImageView);
 //        favoriteImage.setOnClickListener(new View.OnClickListener() {
 //            @Override
 //            public void onPreviousClick(View v) {
@@ -72,13 +81,15 @@ public class AlbumAdapter extends BaseAdapter {
 //                }
 //            }
 //        });
-        textView.setText(album != null ? album.Title : null);
-        Bitmap cover = null;
-        if (album != null) {
-            cover = album.Cover;
-        }
-        imageView.setImageBitmap((cover != null) ? cover : ((BitmapDrawable) Objects.requireNonNull(ContextCompat.getDrawable(mContext, R.drawable.default_cover))).getBitmap());
 
-        return item;
+        return view;
+    }
+
+    public void setAlbums(ArrayList<Album> albums) {
+        this.albums = albums;
+    }
+
+    public ArrayList<Album> albums() {
+        return albums;
     }
 }

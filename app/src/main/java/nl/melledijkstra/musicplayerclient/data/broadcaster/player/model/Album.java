@@ -6,6 +6,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class Album implements Protoble<nl.melledijkstra.musicplayerclient.grpc.Album> {
@@ -13,10 +14,9 @@ public class Album implements Protoble<nl.melledijkstra.musicplayerclient.grpc.A
     public String Title;
     public boolean Favorite;
     public Bitmap Cover;
-    public ArrayList<Song> SongList;
+    public ArrayList<Song> SongList = new ArrayList<>();
 
     public Album(nl.melledijkstra.musicplayerclient.grpc.Album exchangeData) {
-        SongList = new ArrayList<>();
         Hydrate(exchangeData);
     }
 
@@ -30,13 +30,8 @@ public class Album implements Protoble<nl.melledijkstra.musicplayerclient.grpc.A
         Title = title;
         Favorite = favorite;
         Cover = null;
-        SongList = new ArrayList<>();
     }
 
-    /**
-     * Just like fillSongList but for proto objects
-     * @param songList The new song list
-     */
     private void fillSongListFromProto(List<nl.melledijkstra.musicplayerclient.grpc.Song> songList) {
         SongList.clear();
         for (nl.melledijkstra.musicplayerclient.grpc.Song song : songList) {
@@ -44,10 +39,6 @@ public class Album implements Protoble<nl.melledijkstra.musicplayerclient.grpc.A
         }
     }
 
-    /**
-     * Fills the songlist of this album by given songs
-     * @param songList The new song list
-     */
     public void fillSongList(List<Song> songList) {
         SongList.clear();
         SongList.addAll(songList);
@@ -68,5 +59,21 @@ public class Album implements Protoble<nl.melledijkstra.musicplayerclient.grpc.A
         // TODO: implement favorite in proto file
         Favorite = false;
         fillSongListFromProto(obj.getSongListList());
+    }
+
+    public static ArrayList<Album> debugList() {
+        return new ArrayList<>(Arrays.asList(
+            new Album(1, "Chill", true),
+            new Album(2, "House", false),
+            new Album(3, "Classic", true),
+            new Album(4, "Future House", false),
+            new Album(5, "Test", false),
+            new Album(6, "Another AlbumModel", false)));
+    }
+
+    public static Album debug() {
+        Album album = new Album(0, "DebugAlbum", false);
+        album.SongList = Song.debugList();
+        return album;
     }
 }

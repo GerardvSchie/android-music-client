@@ -58,8 +58,8 @@ public abstract class BaseFragment extends Fragment implements MPCView {
         return mActivity;
     }
 
-    public void setUnbinder(Unbinder unBinder) {
-        mUnbinder = unBinder;
+    public void setUnbinder(Unbinder unbinder) {
+        mUnbinder = unbinder;
     }
 
     protected abstract void setUp(View view);

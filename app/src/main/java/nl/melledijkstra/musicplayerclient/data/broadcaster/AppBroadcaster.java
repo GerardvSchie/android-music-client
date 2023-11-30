@@ -9,6 +9,7 @@ import android.util.Log;
 
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
+import java.util.ArrayList;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
@@ -21,12 +22,19 @@ import io.grpc.ManagedChannelBuilder;
 import io.grpc.stub.StreamObserver;
 import nl.melledijkstra.musicplayerclient.data.broadcaster.model.Message;
 import nl.melledijkstra.musicplayerclient.data.broadcaster.player.AppPlayer;
+import nl.melledijkstra.musicplayerclient.data.broadcaster.player.model.Album;
+import nl.melledijkstra.musicplayerclient.data.broadcaster.player.model.Song;
 import nl.melledijkstra.musicplayerclient.di.ApplicationContext;
+import nl.melledijkstra.musicplayerclient.grpc.AlbumList;
 import nl.melledijkstra.musicplayerclient.grpc.DataManagerGrpc;
 import nl.melledijkstra.musicplayerclient.grpc.MMPResponse;
 import nl.melledijkstra.musicplayerclient.grpc.MMPStatus;
 import nl.melledijkstra.musicplayerclient.grpc.MMPStatusRequest;
+import nl.melledijkstra.musicplayerclient.grpc.MediaData;
 import nl.melledijkstra.musicplayerclient.grpc.MusicPlayerGrpc;
+import nl.melledijkstra.musicplayerclient.grpc.SongList;
+import nl.melledijkstra.musicplayerclient.ui.main.album.AlbumMPCView;
+import nl.melledijkstra.musicplayerclient.ui.main.song.SongMPCView;
 import nl.melledijkstra.musicplayerclient.utils.NotificationUtils;
 
 @Singleton
@@ -61,6 +69,7 @@ public class AppBroadcaster implements Broadcaster {
             }
 
             ConnectivityState state = getState(false);
+            assert state != null;
             Log.d(TAG, "STATE CHANGED: " + state);
             channel.notifyWhenStateChanged(state, grpcStateChangeListener);
             switch (state) {
@@ -177,8 +186,7 @@ public class AppBroadcaster implements Broadcaster {
         try {
             channel.awaitTermination(5, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
-            Log.e(TAG, Objects.requireNonNull(e.getMessage()));
-            e.printStackTrace();
+            Log.w(TAG, "Caught exception on disconnect: " + Objects.requireNonNull(e.getMessage()));
         } finally {
             channel = null;
             musicPlayerStub = null;
@@ -204,6 +212,58 @@ public class AppBroadcaster implements Broadcaster {
         mLocalBroadcastManager.unregisterReceiver(broadcastReceiver);
     }
 
+    @Override
+    public void retrieveAlbumList(AlbumMPCView mView) {
+        musicPlayerStub.retrieveAlbumList(MediaData.getDefaultInstance(), new StreamObserver<AlbumList>() {
+            @Override
+            public void onNext(final AlbumList response) {
+                Log.i(TAG, "Retrieved albums, count: " + response.getAlbumListCount());
+                ArrayList<Album> albums = new ArrayList<>();
+                for (nl.melledijkstra.musicplayerclient.grpc.Album album : response.getAlbumListList()) {
+                    albums.add(new Album(album));
+                }
+                mView.updateAlbums(albums);
+            }
+
+            @Override
+            public void onError(Throwable t) {
+                Log.e(TAG, "grpc onError: ", t);
+            }
+
+            @Override
+            public void onCompleted() {
+                Log.i(TAG, "onCompleted: album list call done");
+                mView.stopRefresh(false);
+            }
+        });
+    }
+
+    @Override
+    public void retrieveSongList(int albumID, SongMPCView mView) {
+        musicPlayerStub.retrieveSongList(MediaData.newBuilder().setId(albumID).build(), new StreamObserver<SongList>() {
+            @Override
+            public void onNext(final SongList response) {
+                Log.i(TAG, "Retrieved songs, count: " + response.getSongListCount());
+                ArrayList<Song> songs = new ArrayList<>();
+                for (nl.melledijkstra.musicplayerclient.grpc.Song song : response.getSongListList()) {
+                    songs.add(new Song(song));
+                }
+                mView.updateSongList(songs);
+            }
+
+            @Override
+            public void onError(Throwable t) {
+                Log.e(TAG, "grpc onError: ", t);
+            }
+
+            @Override
+            public void onCompleted() {
+                Log.i(TAG, "onCompleted: retrieving songs done");
+                mView.stopRefresh(false);
+            }
+        });
+    }
+
     // Forcibly get the newest melon player status
     public void retrieveNewStatus() {
         musicPlayerStub.retrieveMMPStatus(MMPStatusRequest.getDefaultInstance(), statusStreamObserver);
@@ -219,7 +279,6 @@ public class AppBroadcaster implements Broadcaster {
             Log.w(TAG, "Getting state whilst it is null");
             return null;
         }
-//        assert channel != null : "Cannot retrieve state if channel is null";
         ConnectivityState state = channel.getState(requestConnection);
         Log.d(TAG, "Current state " + state.toString());
         return state;
@@ -235,7 +294,7 @@ public class AppBroadcaster implements Broadcaster {
         musicPlayerStub.registerMMPNotify(MMPStatusRequest.getDefaultInstance(), new StreamObserver<MMPStatus>() {
             @Override
             public void onNext(MMPStatus status) {
-                Log.d(TAG, "onNext called");
+                Log.v(TAG, "onNext called");
                 appPlayer.setState(status);
                 // TODO: update the player and that should update notification
                 if (status.getState() == MMPStatus.State.PLAYING) {

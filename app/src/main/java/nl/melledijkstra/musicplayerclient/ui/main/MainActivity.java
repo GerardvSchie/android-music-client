@@ -6,17 +6,18 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 
 import com.google.android.material.navigation.NavigationView;
-
-import java.util.Calendar;
 
 import javax.inject.Inject;
 
@@ -27,19 +28,22 @@ import nl.melledijkstra.musicplayerclient.ui.base.BaseActivity;
 import nl.melledijkstra.musicplayerclient.ui.connect.ConnectActivity;
 import nl.melledijkstra.musicplayerclient.ui.main.album.AlbumFragment;
 import nl.melledijkstra.musicplayerclient.ui.main.controller.ControllerFragment;
+import nl.melledijkstra.musicplayerclient.ui.main.song.SongFragment;
 import nl.melledijkstra.musicplayerclient.ui.settings.SettingsActivity;
-import nl.melledijkstra.musicplayerclient.utils.AlertUtils;
 
 public class MainActivity extends BaseActivity implements MainMPCView {
     static final String TAG = "MainActivity";
     @Inject
     MainMPCPresenter<MainMPCView> mPresenter;
+    @Inject
+    MainAdapter mMainAdapter;
 
     DrawerLayout drawer;
     NavigationView navigationView;
     ActionBarDrawerToggle toggle;
     ControllerFragment controllerFragment = ControllerFragment.newInstance();
-    AlbumFragment mAlbumFragment;
+    AlbumFragment albumFragment;
+    SongFragment songFragment;
 
     public static Intent getStartIntent(Context context) {
         return new Intent(context, MainActivity.class);
@@ -56,13 +60,11 @@ public class MainActivity extends BaseActivity implements MainMPCView {
         setUp();
     }
 
-//    @Override
-//    protected void onPostCreate(@Nullable Bundle savedInstanceState) {
-//        super.onPostCreate(savedInstanceState);
-//        if (savedInstanceState != null) {
-//            toggle.syncState();
-//        }
-//    }
+    @Override
+    protected void onPostCreate(@Nullable Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
+        albumFragment.retrieveAlbumList();
+    }
 
     @Override
     public void onBackPressed() {
@@ -76,24 +78,24 @@ public class MainActivity extends BaseActivity implements MainMPCView {
     NavigationView.OnNavigationItemSelectedListener onNavigationItemClick = new NavigationView.OnNavigationItemSelectedListener() {
         @Override
         public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-//            FragmentManager fragmentManager = getSupportFragmentManager();
-//            Fragment fragment = null;
-//            int itemId = item.getItemId();
-//            if (itemId == R.id.drawer_mplayer) {
-//                if (mAlbumsFragment == null) {
-//                    mAlbumsFragment = new AlbumsFragment();
-//                }
-//                fragment = mAlbumsFragment;
-//            } else if (itemId == R.id.drawer_settings) {
-//                openSettingsActivity();
-//            }
-//
-//            if (fragment != null) {
-//                FragmentTransaction ft = fragmentManager.beginTransaction();
-//                ft.replace(R.id.music_content_container, fragment);
-//                ft.commit();
-//            }
-//            drawer.closeDrawers();
+            FragmentManager fragmentManager = getSupportFragmentManager();
+            int itemId = item.getItemId();
+            if (itemId == R.id.drawer_settings) {
+                openSettingsActivity();
+                return true;
+            }
+
+            if (itemId != R.id.drawer_mplayer) {
+                Log.w(TAG, "NavItem id not valid");
+                return false;
+            }
+
+            Fragment fragment = albumFragment;
+            FragmentTransaction ft = fragmentManager.beginTransaction();
+            ft.replace(R.id.music_content_container, fragment);
+            ft.commit();
+
+            drawer.closeDrawers();
             return true;
         }
     };
@@ -218,21 +220,25 @@ public class MainActivity extends BaseActivity implements MainMPCView {
         actionBar.setHomeButtonEnabled(true);
 
         // DrawerLayout
+        drawer = requireViewById(R.id.main_drawer_layout);
         toggle = new ActionBarDrawerToggle(
                 this, drawer, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer = requireViewById(R.id.main_drawer_layout);
         drawer.addDrawerListener(toggle);
 
         navigationView = requireViewById(R.id.drawer_navigation);
         navigationView.setNavigationItemSelectedListener(onNavigationItemClick);
-        View headerView = navigationView.getHeaderView(0);
-        headerView.setOnClickListener(v -> AlertUtils.createAlert(MainActivity.this, R.mipmap.app_logo, "Melon Music Player", null)
-                .setMessage("The melon music player created by Melle Dijkstra © " + Calendar.getInstance().get(Calendar.YEAR))
-                .show());
+//        View headerView = navigationView.getHeaderView(0);
+//        headerView.setOnClickListener(view -> AlertUtils.createAlert(MainActivity.this, R.mipmap.app_logo, "Melon Music Player", view)
+//                .setMessage("The melon music player created by Melle Dijkstra © " + Calendar.getInstance().get(Calendar.YEAR))
+//                .show());
+
+        mMainAdapter.setCount(2);
+        albumFragment = (AlbumFragment) mMainAdapter.createFragment(0);
+        songFragment = (SongFragment) mMainAdapter.createFragment(1);
 
         // Start off with a album view
         getSupportFragmentManager().beginTransaction()
-                .add(R.id.music_content_container, new AlbumFragment())
+                .add(R.id.music_content_container, albumFragment)
                 .commit();
 
         controllerFragment = ControllerFragment.newInstance();

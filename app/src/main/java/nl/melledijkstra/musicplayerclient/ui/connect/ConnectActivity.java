@@ -72,7 +72,7 @@ public class ConnectActivity extends BaseActivity implements ConnectMPCView {
         Log.v(TAG, "onResume");
         super.onResume();
         if (mPresenter.isConnected()) {
-            Log.d(TAG, "Already connected, opening main activity");
+            Log.i(TAG, "Already connected, opening main activity");
             openMainActivity();
             return;
         }

@@ -10,6 +10,8 @@ import javax.inject.Singleton;
 import nl.melledijkstra.musicplayerclient.data.broadcaster.Broadcaster;
 import nl.melledijkstra.musicplayerclient.data.prefs.PreferencesHelper;
 import nl.melledijkstra.musicplayerclient.di.ApplicationContext;
+import nl.melledijkstra.musicplayerclient.ui.main.album.AlbumMPCView;
+import nl.melledijkstra.musicplayerclient.ui.main.song.SongMPCView;
 
 @Singleton
 public class AppDataManager implements DataManager {
@@ -77,5 +79,15 @@ public class AppDataManager implements DataManager {
     @Override
     public void unRegisterReceiver(BroadcastReceiver broadcastReceiver) {
         mBroadcaster.unRegisterReceiver(broadcastReceiver);
+    }
+
+    @Override
+    public void retrieveAlbumList(AlbumMPCView albumMPCView) {
+        mBroadcaster.retrieveAlbumList(albumMPCView);
+    }
+
+    @Override
+    public void retrieveSongList(int albumID, SongMPCView songMPCView) {
+        mBroadcaster.retrieveSongList(albumID, songMPCView);
     }
 }

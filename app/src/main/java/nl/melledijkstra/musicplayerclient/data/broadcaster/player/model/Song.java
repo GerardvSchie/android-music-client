@@ -2,6 +2,9 @@ package nl.melledijkstra.musicplayerclient.data.broadcaster.player.model;
 
 import androidx.annotation.NonNull;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+
 /**
  * <p>SongModel Model class that has all information about a specific song</p>
  */
@@ -31,5 +34,14 @@ public class Song implements Protoble<nl.melledijkstra.musicplayerclient.grpc.So
     @Override
     public String toString() {
         return Title;
+    }
+
+    public static ArrayList<Song> debugList() {
+        return new ArrayList<>(Arrays.asList(
+            new Song(0, "Artist - Test Song #1", 1000),
+            new Song(1, "Artist - Test Song #2", 1000),
+            new Song(2, "Artist - Test Song #3", 1000),
+            new Song(3, "Artist - Test Song #4", 1000),
+            new Song(4, "Artist - Test Song #5", 1000)));
     }
 }

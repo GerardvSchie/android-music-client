@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- Ask for INTERNET permission so that we can connect to python socket server -->
     <uses-permission android:name="android.permission.INTERNET" />
-    <!-- Needed to check if user gets a call, if so then turn down the volume of the musicplayer -->
+    <!-- Needed to check if user gets a call, if so then turn down the volume of the music player -->
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <!-- Permission needed to show notifications -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />

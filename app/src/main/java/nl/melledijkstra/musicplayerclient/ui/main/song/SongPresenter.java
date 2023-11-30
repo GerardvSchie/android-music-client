@@ -1,13 +1,13 @@
-package nl.melledijkstra.musicplayerclient.ui.main.album;
+package nl.melledijkstra.musicplayerclient.ui.main.song;
 
 import javax.inject.Inject;
 
 import nl.melledijkstra.musicplayerclient.data.DataManager;
 import nl.melledijkstra.musicplayerclient.ui.base.BasePresenter;
 
-public class AlbumPresenter<V extends AlbumMPCView> extends BasePresenter<V> implements AlbumMPCPresenter<V> {
+public class SongPresenter<V extends SongMPCView> extends BasePresenter<V> implements SongMPCPresenter<V> {
     @Inject
-    public AlbumPresenter(DataManager dataManager) {
+    public SongPresenter(DataManager dataManager) {
         super(dataManager);
     }
     @Override
@@ -15,7 +15,7 @@ public class AlbumPresenter<V extends AlbumMPCView> extends BasePresenter<V> imp
         return getDataManager().isConnected();
     }
     @Override
-    public void retrieveAlbumList() {
-        getDataManager().retrieveAlbumList(mView);
+    public void retrieveSongList(int albumID) {
+        getDataManager().retrieveSongList(albumID, mView);
     }
 }

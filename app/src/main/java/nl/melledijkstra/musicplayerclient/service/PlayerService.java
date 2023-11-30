@@ -7,6 +7,8 @@ import android.os.Binder;
 import android.os.IBinder;
 import android.util.Log;
 
+import androidx.annotation.Nullable;
+
 import javax.inject.Inject;
 
 import nl.melledijkstra.musicplayerclient.App;
@@ -20,10 +22,6 @@ public class PlayerService extends Service implements AppPlayer.StateUpdateListe
     static final String TAG = "MelonPlayerService";
     @Inject
     DataManager mDataManager;
-
-//    volatile AppPlayer appPlayer = AppPlayer.getInstance();
-//    PhoneStateReceiver phoneStateReceiver = new PhoneStateReceiver();
-//    final IBinder mServiceBinder = new LocalBinder();
 
     public static Intent getStartIntent(Context context) {
         return new Intent(context, PlayerService.class);
@@ -46,11 +44,6 @@ public class PlayerService extends Service implements AppPlayer.StateUpdateListe
                 .applicationComponent(((App)getApplication()).getComponent())
                 .build();
         component.inject(this);
-
-        // using LocalBroadcastManager only accepts broadcast from this application
-//        LocalBroadcastManager.getInstance(this).registerReceiver(mReceiver, new IntentFilter(INITIATE_CONNECTION));
-//        setupGrpc(musicPlayerIp, musicPlayerPort);
-//        initiateConnection(false);
     }
 
     @Override
@@ -67,22 +60,17 @@ public class PlayerService extends Service implements AppPlayer.StateUpdateListe
         Log.i(TAG, "onDestroy");
         super.onDestroy();
         stopForeground(true);
-//        mDataManager.disconnectBroadcaster();
     }
 
+    @Nullable
     @Override
     public IBinder onBind(Intent intent) {
         return null;
-//        return mServiceBinder;
     }
 
     @Override
     public void MelonPlayerStateUpdated() {
         //showNotification();
-    }
-
-    public AppPlayer getMelonPlayer() {
-        return null;
     }
 
     // This binder gives the service to the binding object
