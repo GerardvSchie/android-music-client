@@ -24,6 +24,7 @@ import javax.inject.Inject;
 import butterknife.ButterKnife;
 import kotlin.NotImplementedError;
 import nl.melledijkstra.musicplayerclient.R;
+import nl.melledijkstra.musicplayerclient.data.broadcaster.player.model.Album;
 import nl.melledijkstra.musicplayerclient.ui.base.BaseActivity;
 import nl.melledijkstra.musicplayerclient.ui.connect.ConnectActivity;
 import nl.melledijkstra.musicplayerclient.ui.main.album.AlbumFragment;
@@ -197,19 +198,25 @@ public class MainActivity extends BaseActivity implements MainMPCView {
         mPresenter.registerReceiver();
     }
 
-//    public void showSongsFragment(AlbumModel albumModel) {
-//        SongsFragment songsFragment = new SongsFragment();
-//        Bundle bundle = new Bundle();
-//        bundle.putLong("albumid", albumModel.getID());
-//        Log.v(TAG, "Show songs of albumModel: " + albumModel.getTitle() + " (" + albumModel.getID() + ")");
-//        songsFragment.setArguments(bundle);
-//        getSupportFragmentManager()
-//                .beginTransaction()
-//                .addToBackStack(null)
-//                .replace(R.id.music_content_container, songsFragment)
-//                .commit();
-//        setTitle(albumModel.getTitle());
-//    }
+    public void showAlbumFragment() {
+        Log.v(TAG, "Show album fragment");
+        getSupportFragmentManager().beginTransaction()
+                .show(albumFragment)
+                .hide(songFragment)
+                .commit();
+        setTitle("Albums");
+        albumFragment.retrieveAlbumList();
+    }
+
+    public void showSongFragment(Album album) {
+        Log.v(TAG, "Show songs of album: " + album.Title + " (id=" + album.ID + ")");
+        getSupportFragmentManager().beginTransaction()
+                .show(songFragment)
+                .hide(albumFragment)
+                .commit();
+        setTitle(album.Title);
+        songFragment.retrieveSongList(album);
+    }
 
     @Override
     protected void setUp() {
@@ -233,12 +240,13 @@ public class MainActivity extends BaseActivity implements MainMPCView {
 //                .show());
 
         mMainAdapter.setCount(2);
-        albumFragment = (AlbumFragment) mMainAdapter.createFragment(0);
         songFragment = (SongFragment) mMainAdapter.createFragment(1);
-
-        // Start off with a album view
+        albumFragment = (AlbumFragment) mMainAdapter.createFragment(0);
         getSupportFragmentManager().beginTransaction()
+                .add(R.id.music_content_container, songFragment)
                 .add(R.id.music_content_container, albumFragment)
+                .show(albumFragment)
+                .hide(songFragment)
                 .commit();
 
         controllerFragment = ControllerFragment.newInstance();

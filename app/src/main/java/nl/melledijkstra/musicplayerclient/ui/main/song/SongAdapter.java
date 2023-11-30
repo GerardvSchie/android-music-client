@@ -30,6 +30,10 @@ public class SongAdapter extends RecyclerView.Adapter<BaseViewHolder> {
         return album;
     }
 
+    public SongAdapter() {
+
+    }
+
     @NonNull
     @Override
     public SongViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {

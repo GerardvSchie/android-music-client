@@ -38,9 +38,9 @@ public class SongFragment extends BaseFragment implements SongMPCView, SwipeRefr
 
     RecyclerView songListRecyclerView;
     SwipeRefreshLayout swipeRefreshLayout;
-    int albumId = 0;
 
     public static SongFragment newInstance() {
+        Log.d(TAG, "Creating new instance of SongFragment");
         Bundle args = new Bundle();
         SongFragment fragment = new SongFragment();
         fragment.setArguments(args);
@@ -49,10 +49,11 @@ public class SongFragment extends BaseFragment implements SongMPCView, SwipeRefr
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_songs, container, false);
+        Log.v(TAG, "onCreateView");
         ActivityComponent component = getActivityComponent();
         assert component != null : "No service running?";
         component.inject(this);
+        View view = inflater.inflate(R.layout.fragment_songs, container, false);
         setUnbinder(ButterKnife.bind(this, view));
         mPresenter.onAttach(this);
         return view;
@@ -128,21 +129,13 @@ public class SongFragment extends BaseFragment implements SongMPCView, SwipeRefr
         return super.onContextItemSelected(item);
     }
 
-//    @Override
-//    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-//        super.onViewCreated(view, savedInstanceState);
-//        Log.d(TAG, "albumid: " + albumid);
-//        albumid = requireArguments().getLong("albumid", -1);
-//        retrieveSongList();
-//    }
-
     @Override
     public void onDestroy() {
         super.onDestroy();
         mPresenter.onDetach();
     }
 
-    public void retrieveSongList(int albumId) {
+    public void retrieveSongList(Album album) {
         Log.v(TAG, "RetrieveSongList");
         if (App.DEBUG) {
             updateSongList(Album.debug().SongList);
@@ -156,7 +149,7 @@ public class SongFragment extends BaseFragment implements SongMPCView, SwipeRefr
             return;
         }
 
-        mPresenter.retrieveSongList(albumId);
+        mPresenter.retrieveSongList(album);
     }
 
 //    @Override
@@ -171,7 +164,7 @@ public class SongFragment extends BaseFragment implements SongMPCView, SwipeRefr
 
     @Override
     public void onRefresh() {
-        retrieveSongList(albumId);
+        retrieveSongList(mSongAdapter.album());
     }
 
     public void stopRefresh(boolean hasDelay) {

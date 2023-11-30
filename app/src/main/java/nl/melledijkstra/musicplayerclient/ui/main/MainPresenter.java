@@ -22,7 +22,6 @@ public class MainPresenter<V extends MainMPCView> extends BasePresenter<V> imple
 
         mBroadcastFilter.addAction(Action.ACTION_NEXT.toString());
 //        mBroadcastFilter.addAction(MelonPlayerService.DISCONNECTED);
-
     }
 
     @Override

@@ -21,6 +21,7 @@ import nl.melledijkstra.musicplayerclient.R;
 import nl.melledijkstra.musicplayerclient.data.broadcaster.player.model.Album;
 import nl.melledijkstra.musicplayerclient.di.component.ActivityComponent;
 import nl.melledijkstra.musicplayerclient.ui.base.BaseFragment;
+import nl.melledijkstra.musicplayerclient.ui.main.MainActivity;
 
 public class AlbumFragment extends BaseFragment implements AlbumMPCView,
         SwipeRefreshLayout.OnRefreshListener,
@@ -36,6 +37,7 @@ public class AlbumFragment extends BaseFragment implements AlbumMPCView,
     SwipeRefreshLayout swipeRefreshLayout;
 
     public static AlbumFragment newInstance() {
+        Log.d(TAG, "Creating new instance of AlbumFragment");
         Bundle args = new Bundle();
         AlbumFragment fragment = new AlbumFragment();
         fragment.setArguments(args);
@@ -44,10 +46,11 @@ public class AlbumFragment extends BaseFragment implements AlbumMPCView,
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_albums, container, false);
+        Log.v(TAG, "onCreateView");
         ActivityComponent component = getActivityComponent();
         assert component != null : "No service running?";
         component.inject(this);
+        View view = inflater.inflate(R.layout.fragment_albums, container, false);
         setUnbinder(ButterKnife.bind(this, view));
         mPresenter.onAttach(this);
         return view;
@@ -106,7 +109,7 @@ public class AlbumFragment extends BaseFragment implements AlbumMPCView,
         }
 
         Log.d(TAG, "Clicked on Album: " + album);
-//        ((MainActivity) requireActivity()).showSongsFragment(albumModel);
+        ((MainActivity) requireActivity()).showSongFragment(album);
     }
 
     @Override
