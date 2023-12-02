@@ -14,4 +14,14 @@ public interface Broadcaster {
     void unRegisterReceiver(BroadcastReceiver broadcastReceiver);
     void retrieveAlbumList(AlbumMPCView albumMPCView);
     void retrieveSongList(int albumID, SongMPCView songMPCView);
+    void play(int songId);
+    void changeVolume(int newVolume);
+    void changePosition(int position);
+    void previous();
+    void next();
+    void addNext(int songId);
+//    void addToQueue(int songId);
+    void renameSong(int songId, String newTitle);
+    void deleteSong(int songId);
+    void moveSong(int songId, int albumId);
 }

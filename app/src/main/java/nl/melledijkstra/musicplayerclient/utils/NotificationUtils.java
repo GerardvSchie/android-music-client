@@ -51,8 +51,8 @@ public final class NotificationUtils {
 //                .addAction(R.drawable.ic_pause, "Pause", generatePendingIntent(MelonPlayerService.ACTION_PLAY_PAUSE))  // #1
 //                .addAction(R.drawable.ic_skip_next, "Next", generatePendingIntent(MelonPlayerService.ACTION_NEXT))     // #2
                 // Apply the media style template.
-//                .setStyle(new androidx.media.app.NotificationCompat.MediaStyle()
-//                        .setShowActionsInCompactView(0, 1, 2 /* #1: pause button */))
+                .setStyle(new androidx.media.app.NotificationCompat.MediaStyle()
+                        .setShowActionsInCompactView(/*0, 1, 2 #1: pause button */))
                 .setContentTitle(currentSong.Title)
                 .setContentText("Context");
 

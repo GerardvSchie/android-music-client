@@ -32,6 +32,14 @@ public class Album implements Protoble<nl.melledijkstra.musicplayerclient.grpc.A
         Cover = null;
     }
 
+    public int getSongCount() {
+        return SongList.size();
+    }
+
+    public Song getSong(int i) {
+        return i >= getSongCount() ? null : SongList.get(i);
+    }
+
     private void fillSongListFromProto(List<nl.melledijkstra.musicplayerclient.grpc.Song> songList) {
         SongList.clear();
         for (nl.melledijkstra.musicplayerclient.grpc.Song song : songList) {

@@ -23,12 +23,10 @@ import nl.melledijkstra.musicplayerclient.data.broadcaster.player.model.Album;
 public class AlbumAdapter extends ArrayAdapter<Album> {
     static final String TAG = "AlbumAdapter";
     private ArrayList<Album> albums = new ArrayList<>();
-    private int custom_layout_id;
 
     public AlbumAdapter(Context context, int resource) {
         super(context, resource);
         Log.i(TAG, String.format("Created with %d albums", getCount()));
-        custom_layout_id = resource;
     }
 
     @Nullable

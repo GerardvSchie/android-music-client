@@ -3,6 +3,7 @@ package nl.melledijkstra.musicplayerclient.ui.main.song;
 import android.graphics.Typeface;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
@@ -16,13 +17,13 @@ import nl.melledijkstra.musicplayerclient.R;
 import nl.melledijkstra.musicplayerclient.data.broadcaster.player.model.Album;
 import nl.melledijkstra.musicplayerclient.data.broadcaster.player.model.Song;
 import nl.melledijkstra.musicplayerclient.ui.base.BaseViewHolder;
+import nl.melledijkstra.musicplayerclient.utils.AlertUtils;
 import nl.melledijkstra.musicplayerclient.utils.MathUtils;
 
 public class SongAdapter extends RecyclerView.Adapter<BaseViewHolder> {
     static final String TAG = "SongAdapter";
+    private Callback mCallback;
     private Album album = null;
-    private int custom_layout_id;
-
     public void setAlbum(Album album) {
         this.album = album;
     }
@@ -30,8 +31,8 @@ public class SongAdapter extends RecyclerView.Adapter<BaseViewHolder> {
         return album;
     }
 
-    public SongAdapter() {
-
+    public void setCallback(Callback callback) {
+        mCallback = callback;
     }
 
     @NonNull
@@ -46,16 +47,17 @@ public class SongAdapter extends RecyclerView.Adapter<BaseViewHolder> {
         holder.onBind(position);
     }
 
-    public Integer getPosition() {
-        return custom_layout_id;
-    }
-
     @Override
     public int getItemCount() {
-        if (album == null) {
-            return 0;
-        }
-        return album.SongList.size();
+        return album == null ? 0 : album.getSongCount();
+    }
+
+    public interface Callback {
+        void play(int songId);
+        void addNext(int songId);
+        void renameSong(int songId, String newTitle);
+        void deleteSong(int songId);
+        void moveSong(int songId, int albumId);
     }
 
     public class SongViewHolder extends BaseViewHolder {
@@ -94,16 +96,57 @@ public class SongAdapter extends RecyclerView.Adapter<BaseViewHolder> {
                 tvDuration.setText(MathUtils.secondsToDurationFormat(song.Duration));
             }
 
-//            final int hPosition = getBindingAdapterPosition();
-//            holder.itemView.setOnClickListener(view -> itemClickListener.onItemClick(view, hPosition));
-
             tvSongOptions.setOnClickListener(view -> {
-//                hPosition = custom_layout_id;
                 PopupMenu popup = new PopupMenu(view.getContext(), view);
                 popup.inflate(R.menu.song_item_menu);
-//                popup.setOnMenuItemClickListener(menuListener);
+                popup.setOnMenuItemClickListener(item -> SongViewHolder.this.onMenuItemClick(item, song));
                 popup.show();
             });
+
+            itemView.setOnClickListener(view -> mCallback.play((int)song.ID));
+        }
+
+        public boolean onMenuItemClick(MenuItem item, Song song) {
+            Log.d(TAG, "Clicked on menu item: " + item.getTitle());
+            int itemId = item.getItemId();
+            if (itemId == R.id.menu_play_next) {
+                mCallback.addNext((int)song.ID);
+            } else if (itemId == R.id.menu_rename) {
+//                View renameSongDialog = requireActivity().getLayoutInflater().inflate(R.layout.rename_song_dialog, null);
+//                final EditText edRenameSong = renameSongDialog.requireViewById(R.id.edRenameSong);
+//                edRenameSong.setText(song.Title);
+//                AlertUtils.createAlert(getContext(), R.drawable.ic_mode_edit, String.valueOf(R.string.rename), renameSongDialog)
+//                        .setNegativeButton(R.string.cancel, null)
+//                        .setPositiveButton(R.string.rename, (dialog, which) -> {
+//                            if (isBound) {
+//                                boundService.dataManagerStub.renameSong(RenameData.newBuilder()
+//                                        .setId(song.ID)
+//                                        .setNewTitle(edRenameSong.getText().toString()).build(), boundService.defaultMMPResponseStreamObserver);
+//                            }
+//                        }).show();
+            } else if (itemId == R.id.menu_move) {
+//                View moveSongDialog = requireActivity().getLayoutInflater().inflate(R.layout.move_song_dialog, null);
+//                final Spinner spinnerAlbums = moveSongDialog.requireViewById(R.id.spinnerAlbums);
+//                spinnerAlbums.setAdapter(new ArrayAdapter<>(requireContext(), android.R.layout.simple_list_item_1, boundService.getMelonPlayer().Albums));
+//                AlertUtils.createAlert(getContext(), R.drawable.ic_reply, "Move", moveSongDialog)
+//                        .setNegativeButton(R.string.cancel, null)
+//                        .setPositiveButton(R.string.move, (dialog, which) -> {
+//                            Album selectedAlbum = ((Album) spinnerAlbums.getSelectedItem());
+//                            if (selectedAlbum != null) {
+//                                boundService.dataManagerStub.moveSong(MoveData.newBuilder()
+//                                        .setSongId(song.ID)
+//                                        .setAlbumId(selectedAlbum.ID)
+//                                        .build(), boundService.defaultMMPResponseStreamObserver);
+//                            }
+//                        }).show();
+            } else if (itemId == R.id.menu_delete) {
+                AlertUtils.createAlert(itemView.getContext(), R.drawable.ic_action_trash, String.valueOf(R.string.delete), null)
+                        .setMessage("Do you really want to delete '" + song.Title + "'?")
+                        .setNegativeButton(R.string.cancel, null)
+                        .setPositiveButton(R.string.delete, (dialog, which) -> mCallback.deleteSong((int) song.ID)).show();
+            }
+
+            return true;
         }
     }
 }

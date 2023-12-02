@@ -11,6 +11,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
@@ -165,10 +166,17 @@ public class MainActivity extends BaseActivity implements MainMPCView {
             return true;
         } else if (itemId == R.id.action_settings) {
             openSettingsActivity();
+        } else if (itemId == R.id.action_connect) {
+            mPresenter.connect();
         } else {
             Log.w(TAG, "No action for: " + item.getTitle());
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onConnect() {
+        throw new NotImplementedError("HIDE BUTTON FOR RECONNECT");
     }
 
     @Override
@@ -220,13 +228,15 @@ public class MainActivity extends BaseActivity implements MainMPCView {
 
     @Override
     protected void setUp() {
-        setSupportActionBar(requireViewById(R.id.toolbar));
+        Toolbar toolbar = requireViewById(R.id.toolbar);
+        toolbar.setNavigationIcon(R.drawable.ic_menu);
+        setSupportActionBar(toolbar);
+
         ActionBar actionBar = getSupportActionBar();
         assert actionBar != null;
-        actionBar.setDisplayHomeAsUpEnabled(true);
         actionBar.setHomeButtonEnabled(true);
+        actionBar.setDisplayHomeAsUpEnabled(true);
 
-        // DrawerLayout
         drawer = requireViewById(R.id.main_drawer_layout);
         toggle = new ActionBarDrawerToggle(
                 this, drawer, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
@@ -234,14 +244,18 @@ public class MainActivity extends BaseActivity implements MainMPCView {
 
         navigationView = requireViewById(R.id.drawer_navigation);
         navigationView.setNavigationItemSelectedListener(onNavigationItemClick);
+
 //        View headerView = navigationView.getHeaderView(0);
 //        headerView.setOnClickListener(view -> AlertUtils.createAlert(MainActivity.this, R.mipmap.app_logo, "Melon Music Player", view)
 //                .setMessage("The melon music player created by Melle Dijkstra © " + Calendar.getInstance().get(Calendar.YEAR))
 //                .show());
 
         mMainAdapter.setCount(2);
-        songFragment = (SongFragment) mMainAdapter.createFragment(1);
         albumFragment = (AlbumFragment) mMainAdapter.createFragment(0);
+        songFragment = (SongFragment) mMainAdapter.createFragment(1);
+
+        // If not all the fragments will be added their onCreateView
+        // Hide one and show the other to make sure they don't display over each other
         getSupportFragmentManager().beginTransaction()
                 .add(R.id.music_content_container, songFragment)
                 .add(R.id.music_content_container, albumFragment)

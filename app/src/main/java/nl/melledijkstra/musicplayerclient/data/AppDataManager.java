@@ -90,4 +90,48 @@ public class AppDataManager implements DataManager {
     public void retrieveSongList(int albumID, SongMPCView songMPCView) {
         mBroadcaster.retrieveSongList(albumID, songMPCView);
     }
+    @Override
+    public void play(int songId) {
+        mBroadcaster.play(songId);
+    }
+
+    @Override
+    public void changeVolume(int newVolume) {
+        mBroadcaster.changeVolume(newVolume);
+    }
+
+    @Override
+    public void changePosition(int position) {
+        mBroadcaster.changePosition(position);
+    }
+
+    @Override
+    public void previous() {
+        mBroadcaster.previous();
+    }
+
+    @Override
+    public void next() {
+        mBroadcaster.next();
+    }
+
+    @Override
+    public void addNext(int songId) {
+        mBroadcaster.addNext(songId);
+    }
+
+    @Override
+    public void renameSong(int songId, String newTitle) {
+        mBroadcaster.renameSong(songId, newTitle);
+    }
+
+    @Override
+    public void deleteSong(int songId) {
+        mBroadcaster.deleteSong(songId);
+    }
+
+    @Override
+    public void moveSong(int songId, int albumId) {
+        mBroadcaster.moveSong(songId, albumId);
+    }
 }

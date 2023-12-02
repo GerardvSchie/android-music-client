@@ -8,5 +8,6 @@ public interface MainMPCView extends MPCView {
     void openSettingsActivity();
     void showAlbumFragment();
     void showSongFragment(Album album);
+    void onConnect();
     void next();
 }

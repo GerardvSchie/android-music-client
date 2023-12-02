@@ -19,4 +19,28 @@ public class SongPresenter<V extends SongMPCView> extends BasePresenter<V> imple
     public void retrieveSongList(Album album) {
         getDataManager().retrieveSongList((int)album.ID, mView);
     }
+    @Override
+    public void play(int songID) {
+        getDataManager().play(songID);
+    }
+
+    @Override
+    public void addNext(int songId) {
+        getDataManager().addNext(songId);
+    }
+
+    @Override
+    public void renameSong(int songId, String newTitle) {
+        getDataManager().renameSong(songId, newTitle);
+    }
+
+    @Override
+    public void deleteSong(int songId) {
+        getDataManager().deleteSong(songId);
+    }
+
+    @Override
+    public void moveSong(int songId, int albumId) {
+        getDataManager().moveSong(songId, albumId);
+    }
 }

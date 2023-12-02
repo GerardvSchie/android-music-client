@@ -39,6 +39,15 @@ public class MainPresenter<V extends MainMPCView> extends BasePresenter<V> imple
     }
 
     @Override
+    public void connect() {
+        if (isConnected()) {
+            Log.w(TAG, "Try to connect whilst already connected, do nothing");
+            return;
+        }
+        getDataManager().connectBroadcaster(getDataManager().getCurrentHostIP(), getDataManager().getCurrentHostPort());
+    }
+
+    @Override
     public boolean isConnected() {
         return getDataManager().isConnected();
     }

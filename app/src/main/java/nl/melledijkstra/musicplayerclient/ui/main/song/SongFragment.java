@@ -3,12 +3,10 @@ package nl.melledijkstra.musicplayerclient.ui.main.song;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.Nullable;
-import androidx.appcompat.widget.PopupMenu.OnMenuItemClickListener;
 import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.DividerItemDecoration;
@@ -28,7 +26,7 @@ import nl.melledijkstra.musicplayerclient.data.broadcaster.player.model.Song;
 import nl.melledijkstra.musicplayerclient.di.component.ActivityComponent;
 import nl.melledijkstra.musicplayerclient.ui.base.BaseFragment;
 
-public class SongFragment extends BaseFragment implements SongMPCView, SwipeRefreshLayout.OnRefreshListener, OnMenuItemClickListener {
+public class SongFragment extends BaseFragment implements SongMPCView, SwipeRefreshLayout.OnRefreshListener, SongAdapter.Callback {
     static final String TAG = "SongsFragment";
 
     @Inject
@@ -56,6 +54,7 @@ public class SongFragment extends BaseFragment implements SongMPCView, SwipeRefr
         View view = inflater.inflate(R.layout.fragment_songs, container, false);
         setUnbinder(ButterKnife.bind(this, view));
         mPresenter.onAttach(this);
+        mSongAdapter.setCallback(this);
         return view;
     }
 
@@ -74,62 +73,6 @@ public class SongFragment extends BaseFragment implements SongMPCView, SwipeRefr
     }
 
     @Override
-    public boolean onMenuItemClick(MenuItem item) {
-//        Integer position = songListAdapter.getPosition();
-//        assert position != null : "Song list adapter";
-//        final Song song = songs.get(position);
-//        int itemId = item.getItemId();
-//        if (itemId == R.id.menu_play_next) {
-//            if (isBound) {
-//                boundService.musicPlayerStub.addNext(MediaData.newBuilder()
-//                        .setType(MediaType.SONG)
-//                        .setId(song.ID).build(), boundService.defaultMMPResponseStreamObserver);
-//            }
-//        } else if (itemId == R.id.menu_rename) {
-//            View renameSongDialog = requireActivity().getLayoutInflater().inflate(R.layout.rename_song_dialog, null);
-//            final EditText edRenameSong = renameSongDialog.requireViewById(R.id.edRenameSong);
-//            edRenameSong.setText(song.Title);
-//            AlertUtils.createAlert(getContext(), R.drawable.ic_mode_edit, String.valueOf(R.string.rename), renameSongDialog)
-//                    .setNegativeButton(R.string.cancel, null)
-//                    .setPositiveButton(R.string.rename, (dialog, which) -> {
-//                        if (isBound) {
-//                            boundService.dataManagerStub.renameSong(RenameData.newBuilder()
-//                                    .setId(song.ID)
-//                                    .setNewTitle(edRenameSong.getText().toString()).build(), boundService.defaultMMPResponseStreamObserver);
-//                        }
-//                    }).show();
-//        } else if (itemId == R.id.menu_move) {
-//            if (isBound) {
-//                View moveSongDialog = requireActivity().getLayoutInflater().inflate(R.layout.move_song_dialog, null);
-//                final Spinner spinnerAlbums = moveSongDialog.requireViewById(R.id.spinnerAlbums);
-//                spinnerAlbums.setAdapter(new ArrayAdapter<>(requireContext(), android.R.layout.simple_list_item_1, boundService.getMelonPlayer().Albums));
-//                AlertUtils.createAlert(getContext(), R.drawable.ic_reply, "Move", moveSongDialog)
-//                        .setNegativeButton(R.string.cancel, null)
-//                        .setPositiveButton(R.string.move, (dialog, which) -> {
-//                            Album selectedAlbum = ((Album) spinnerAlbums.getSelectedItem());
-//                            if (selectedAlbum != null) {
-//                                boundService.dataManagerStub.moveSong(MoveData.newBuilder()
-//                                        .setSongId(song.ID)
-//                                        .setAlbumId(selectedAlbum.ID)
-//                                        .build(), boundService.defaultMMPResponseStreamObserver);
-//                            }
-//                        }).show();
-//            }
-//        } else if (itemId == R.id.menu_delete) {
-//            AlertUtils.createAlert(getContext(), R.drawable.ic_action_trash, String.valueOf(R.string.delete), null)
-//                    .setMessage("Do you really want to delete '" + song.Title + "'?")
-//                    .setNegativeButton(R.string.cancel, null)
-//                    .setPositiveButton(R.string.delete, (dialog, which) -> {
-//                        if (isBound) {
-//                            boundService.dataManagerStub.deleteSong(MediaData.newBuilder()
-//                                    .setId(song.ID).build(), boundService.defaultMMPResponseStreamObserver);
-//                        }
-//                    }).show();
-//        }
-        return super.onContextItemSelected(item);
-    }
-
-    @Override
     public void onDestroy() {
         super.onDestroy();
         mPresenter.onDetach();
@@ -137,6 +80,7 @@ public class SongFragment extends BaseFragment implements SongMPCView, SwipeRefr
 
     public void retrieveSongList(Album album) {
         Log.v(TAG, "RetrieveSongList");
+        mSongAdapter.setAlbum(album);
         if (App.DEBUG) {
             updateSongList(Album.debug().SongList);
             stopRefresh(false);
@@ -152,16 +96,6 @@ public class SongFragment extends BaseFragment implements SongMPCView, SwipeRefr
         mPresenter.retrieveSongList(album);
     }
 
-//    @Override
-//    public void onItemClick(View view, int position) {
-//        if (isBound) {
-//            boundService.musicPlayerStub.play(MediaControl.newBuilder()
-//                    .setState(MediaControl.State.PLAY)
-//                    .setSongId(songs.get(position).ID)
-//                    .build(), boundService.defaultMMPResponseStreamObserver);
-//        }
-//    }
-
     @Override
     public void onRefresh() {
         retrieveSongList(mSongAdapter.album());
@@ -173,14 +107,37 @@ public class SongFragment extends BaseFragment implements SongMPCView, SwipeRefr
 
     @Override
     public void updateSongList(ArrayList<Song> songArrayList) {
-        Album album = new Album(0, "TESTNAME", false);
-        album.SongList = songArrayList;
-        mSongAdapter.setAlbum(album);
+        mSongAdapter.album().SongList = songArrayList;
         FragmentActivity activity = getActivity();
         if (activity == null) {
             Log.w(TAG, "Unable to update dataset has changed");
             return;
         }
         activity.runOnUiThread(mSongAdapter::notifyDataSetChanged);
+    }
+
+    @Override
+    public void play(int songId) {
+        mPresenter.play(songId);
+    }
+
+    @Override
+    public void addNext(int songId) {
+        mPresenter.addNext(songId);
+    }
+
+    @Override
+    public void renameSong(int songId, String newTitle) {
+        mPresenter.renameSong(songId, newTitle);
+    }
+
+    @Override
+    public void deleteSong(int songId) {
+        mPresenter.deleteSong(songId);
+    }
+
+    @Override
+    public void moveSong(int songId, int albumId) {
+        mPresenter.moveSong(songId, albumId);
     }
 }
