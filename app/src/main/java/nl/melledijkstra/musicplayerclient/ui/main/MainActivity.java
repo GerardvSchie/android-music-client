@@ -43,7 +43,8 @@ public class MainActivity extends BaseActivity implements MainMPCView {
     DrawerLayout drawer;
     NavigationView navigationView;
     ActionBarDrawerToggle toggle;
-    ControllerFragment controllerFragment = ControllerFragment.newInstance();
+
+    ControllerFragment controllerFragment;
     AlbumFragment albumFragment;
     SongFragment songFragment;
 
@@ -72,6 +73,8 @@ public class MainActivity extends BaseActivity implements MainMPCView {
     public void onBackPressed() {
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
+        } else if (songFragment.isVisible()) {
+            showAlbumFragment();
         } else {
             super.onBackPressed();
         }
@@ -116,12 +119,6 @@ public class MainActivity extends BaseActivity implements MainMPCView {
         startActivity(intent);
         finish();
         overridePendingTransition(R.anim.slidein, R.anim.slideout);
-    }
-
-    @Override
-    public void next() {
-        // TODO: Implement what needs to happen to view if next is pressed
-        throw new NotImplementedError("TODO IMPLEMENT");
     }
 
 //    @Override
@@ -180,30 +177,13 @@ public class MainActivity extends BaseActivity implements MainMPCView {
     }
 
     @Override
-    protected void onDestroy() {
-        Log.v(TAG, "onDestroy");
-        super.onDestroy();
-        mPresenter.unregisterReceiver();
-    }
-
-    @Override
-    protected void onPause() {
-        Log.v(TAG, "onPause");
-        super.onPause();
-        mPresenter.unregisterReceiver();
-    }
-
-    @Override
     protected void onResume() {
         Log.v(TAG, "onResume");
         super.onResume();
         if (!mPresenter.isConnected()) {
             Log.d(TAG, "Not connected, going to connection window");
             openConnectActivity();
-            return;
         }
-
-        mPresenter.registerReceiver();
     }
 
     public void showAlbumFragment() {

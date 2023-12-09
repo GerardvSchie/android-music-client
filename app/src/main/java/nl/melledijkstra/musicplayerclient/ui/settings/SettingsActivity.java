@@ -65,4 +65,9 @@ public class SettingsActivity extends BaseActivity implements SettingsMPCView {
         fragmentTransaction.add(android.R.id.content, settingsFragment, "SETTINGS_FRAGMENT");
         fragmentTransaction.commit();
     }
+
+    @Override
+    public void onBackPressed() {
+        openMainActivity();
+    }
 }

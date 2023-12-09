@@ -16,7 +16,7 @@ public interface ActivityComponent {
     void inject(ConnectActivity activity);
     void inject(MainActivity activity);
     void inject(SettingsActivity activity);
-    void inject(ControllerFragment fragment);
     void inject(AlbumFragment fragment);
+    void inject(ControllerFragment fragment);
     void inject(SongFragment fragment);
 }

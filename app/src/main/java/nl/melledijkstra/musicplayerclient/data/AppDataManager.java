@@ -8,6 +8,7 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import nl.melledijkstra.musicplayerclient.data.broadcaster.Broadcaster;
+import nl.melledijkstra.musicplayerclient.data.broadcaster.player.AppPlayer;
 import nl.melledijkstra.musicplayerclient.data.prefs.PreferencesHelper;
 import nl.melledijkstra.musicplayerclient.di.ApplicationContext;
 import nl.melledijkstra.musicplayerclient.ui.main.album.AlbumMPCView;
@@ -82,6 +83,16 @@ public class AppDataManager implements DataManager {
     }
 
     @Override
+    public void registerStateChangeListener(AppPlayer.StateUpdateListener listener) {
+        mBroadcaster.registerStateChangeListener(listener);
+    }
+
+    @Override
+    public void unRegisterStateChangeListener(AppPlayer.StateUpdateListener listener) {
+        mBroadcaster.unRegisterStateChangeListener(listener);
+    }
+
+    @Override
     public void retrieveAlbumList(AlbumMPCView albumMPCView) {
         mBroadcaster.retrieveAlbumList(albumMPCView);
     }
@@ -90,9 +101,20 @@ public class AppDataManager implements DataManager {
     public void retrieveSongList(int albumID, SongMPCView songMPCView) {
         mBroadcaster.retrieveSongList(albumID, songMPCView);
     }
+
     @Override
-    public void play(int songId) {
-        mBroadcaster.play(songId);
+    public void retrieveNewStatus() {
+        mBroadcaster.retrieveNewStatus();
+    }
+
+    @Override
+    public AppPlayer getAppPlayer() {
+        return mBroadcaster.getAppPlayer();
+    }
+
+    @Override
+    public void playSong(int songId) {
+        mBroadcaster.playSong(songId);
     }
 
     @Override
@@ -106,6 +128,11 @@ public class AppDataManager implements DataManager {
     }
 
     @Override
+    public void playPause() {
+        mBroadcaster.playPause();
+    }
+
+    @Override
     public void previous() {
         mBroadcaster.previous();
     }
@@ -116,8 +143,8 @@ public class AppDataManager implements DataManager {
     }
 
     @Override
-    public void addNext(int songId) {
-        mBroadcaster.addNext(songId);
+    public void addSongNext(int songId) {
+        mBroadcaster.addSongNext(songId);
     }
 
     @Override

@@ -117,13 +117,13 @@ public class SongFragment extends BaseFragment implements SongMPCView, SwipeRefr
     }
 
     @Override
-    public void play(int songId) {
-        mPresenter.play(songId);
+    public void playSong(int songId) {
+        mPresenter.playSong(songId);
     }
 
     @Override
-    public void addNext(int songId) {
-        mPresenter.addNext(songId);
+    public void addSongNext(int songId) {
+        mPresenter.addSongNext(songId);
     }
 
     @Override

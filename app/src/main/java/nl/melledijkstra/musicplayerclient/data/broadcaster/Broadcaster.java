@@ -3,6 +3,7 @@ package nl.melledijkstra.musicplayerclient.data.broadcaster;
 import android.content.BroadcastReceiver;
 import android.content.IntentFilter;
 
+import nl.melledijkstra.musicplayerclient.data.broadcaster.player.AppPlayer;
 import nl.melledijkstra.musicplayerclient.ui.main.album.AlbumMPCView;
 import nl.melledijkstra.musicplayerclient.ui.main.song.SongMPCView;
 
@@ -12,14 +13,19 @@ public interface Broadcaster {
     void disconnectBroadcaster();
     void registerReceiver(BroadcastReceiver broadcastReceiver, IntentFilter intentFilter);
     void unRegisterReceiver(BroadcastReceiver broadcastReceiver);
+    void registerStateChangeListener(AppPlayer.StateUpdateListener listener);
+    void unRegisterStateChangeListener(AppPlayer.StateUpdateListener listener);
     void retrieveAlbumList(AlbumMPCView albumMPCView);
+    void retrieveNewStatus();
     void retrieveSongList(int albumID, SongMPCView songMPCView);
-    void play(int songId);
+    AppPlayer getAppPlayer();
+    void playSong(int songId);
     void changeVolume(int newVolume);
     void changePosition(int position);
+    void playPause();
     void previous();
     void next();
-    void addNext(int songId);
+    void addSongNext(int songId);
 //    void addToQueue(int songId);
     void renameSong(int songId, String newTitle);
     void deleteSong(int songId);

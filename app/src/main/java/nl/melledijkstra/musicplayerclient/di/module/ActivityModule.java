@@ -20,6 +20,9 @@ import nl.melledijkstra.musicplayerclient.ui.main.album.AlbumAdapter;
 import nl.melledijkstra.musicplayerclient.ui.main.album.AlbumMPCPresenter;
 import nl.melledijkstra.musicplayerclient.ui.main.album.AlbumMPCView;
 import nl.melledijkstra.musicplayerclient.ui.main.album.AlbumPresenter;
+import nl.melledijkstra.musicplayerclient.ui.main.controller.ControllerMPCPresenter;
+import nl.melledijkstra.musicplayerclient.ui.main.controller.ControllerMPCView;
+import nl.melledijkstra.musicplayerclient.ui.main.controller.ControllerPresenter;
 import nl.melledijkstra.musicplayerclient.ui.main.song.SongAdapter;
 import nl.melledijkstra.musicplayerclient.ui.main.song.SongMPCPresenter;
 import nl.melledijkstra.musicplayerclient.ui.main.song.SongMPCView;
@@ -75,6 +78,12 @@ public class ActivityModule {
     @Provides
     AlbumAdapter provideAlbumAdapter() {
         return new AlbumAdapter(mActivity.getApplicationContext(), R.layout.album_item);
+    }
+
+    @Provides
+    ControllerMPCPresenter<ControllerMPCView> provideControllerPresenter(
+            ControllerPresenter<ControllerMPCView> presenter) {
+        return presenter;
     }
 
     @Provides

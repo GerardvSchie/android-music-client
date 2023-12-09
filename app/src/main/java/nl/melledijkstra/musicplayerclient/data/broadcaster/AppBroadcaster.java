@@ -22,7 +22,6 @@ import io.grpc.ConnectivityState;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.stub.StreamObserver;
-import kotlin.NotImplementedError;
 import nl.melledijkstra.musicplayerclient.data.broadcaster.model.Message;
 import nl.melledijkstra.musicplayerclient.data.broadcaster.player.AppPlayer;
 import nl.melledijkstra.musicplayerclient.data.broadcaster.player.model.Album;
@@ -277,6 +276,14 @@ public class AppBroadcaster implements Broadcaster {
         });
     }
 
+    public void registerStateChangeListener(AppPlayer.StateUpdateListener listener) {
+        appPlayer.registerStateChangeListener(listener);
+    }
+
+    public void unRegisterStateChangeListener(AppPlayer.StateUpdateListener listener) {
+        appPlayer.unRegisterStateChangeListener(listener);
+    }
+
     // Forcibly get the newest melon player status
     public void retrieveNewStatus() {
         musicPlayerStub.retrieveMMPStatus(MMPStatusRequest.getDefaultInstance(), statusStreamObserver);
@@ -335,17 +342,33 @@ public class AppBroadcaster implements Broadcaster {
         NotificationUtils.showNotification(context, notificationManager, appPlayer);
     }
 
-    public void play(int songId) {
-        if (!isConnected()) {
-            Log.w(TAG, "Not connected: Cannot play song (id=" + songId + ")");
-            return;
-        }
+    public AppPlayer getAppPlayer() {
+        return appPlayer;
+    }
 
+    public void playSong(int songId) {
         Log.i(TAG, "Sent play command for songID: " + songId);
         musicPlayerStub.play(MediaControl.newBuilder()
                 .setState(MediaControl.State.PLAY)
                 .setSongId(songId)
                 .build(), defaultMMPResponseStreamObserver);
+    }
+
+    public void playPause() {
+        Log.i(TAG, "play/pause song");
+        musicPlayerStub.play(MediaControl.newBuilder()
+                .setState(MediaControl.State.PAUSE)
+                .build(), defaultMMPResponseStreamObserver);
+    }
+
+    public void previous() {
+        Log.i(TAG, "Go to previous song");
+        musicPlayerStub.previous(PlaybackControl.getDefaultInstance(), defaultMMPResponseStreamObserver);
+    }
+
+    public void next() {
+        Log.i(TAG, "Go to next song");
+        musicPlayerStub.next(PlaybackControl.getDefaultInstance(), defaultMMPResponseStreamObserver);
     }
 
     public void changeVolume(int newVolume) {
@@ -369,54 +392,14 @@ public class AppBroadcaster implements Broadcaster {
                 .setPosition(position).build(), defaultMMPResponseStreamObserver);
     }
 
-    public void previous() {
-        if (!isConnected()) {
-            Log.w(TAG, "Not connected: Cannot go to previous song");
-            return;
-        }
-
-        Log.i(TAG, "Go to previous song");
-        musicPlayerStub.previous(PlaybackControl.getDefaultInstance(), defaultMMPResponseStreamObserver);
-    }
-
-    public void next() {
-        if (!isConnected()) {
-            Log.w(TAG, "Not connected: Cannot go to next song");
-            return;
-        }
-
-        Log.i(TAG, "Go to next song");
-        musicPlayerStub.previous(PlaybackControl.getDefaultInstance(), defaultMMPResponseStreamObserver);
-    }
-
-    public void addNext(int songId) {
-        if (!isConnected()) {
-            Log.w(TAG, "Not connected: Cannot addNext song (id=" + songId + ")");
-            return;
-        }
-
-        Log.i(TAG, "Sent addNext command for songID: " + songId);
+    public void addSongNext(int songId) {
+        Log.i(TAG, "Sent addSongNext command for songID: " + songId);
         musicPlayerStub.addNext(MediaData.newBuilder()
                 .setType(MediaType.SONG)
                 .setId(songId).build(), defaultMMPResponseStreamObserver);
     }
 
-    public void addToQueue(int songId) {
-        if (!isConnected()) {
-            Log.w(TAG, "Not connected: Cannot addToQueue song (id=" + songId + ")");
-            return;
-        }
-
-        // TODO: Implement
-        throw new NotImplementedError();
-    }
-
     public void renameSong(int songId, String newTitle) {
-        if (!isConnected()) {
-            Log.w(TAG, "Not connected: Cannot rename song");
-            return;
-        }
-
         Log.i(TAG, "Rename song id=" + songId + " to '" + newTitle + "'");
         dataManagerStub.renameSong(RenameData.newBuilder()
                 .setId(songId)
@@ -424,22 +407,12 @@ public class AppBroadcaster implements Broadcaster {
     }
 
     public void deleteSong(int songId) {
-        if (!isConnected()) {
-            Log.w(TAG, "Not connected: Cannot delete song");
-            return;
-        }
-
         Log.i(TAG, "Deleting song id=" + songId);
         dataManagerStub.deleteSong(MediaData.newBuilder()
                 .setId(songId).build(), defaultMMPResponseStreamObserver);
     }
 
     public void moveSong(int songId, int albumId) {
-        if (!isConnected()) {
-            Log.w(TAG, "Not connected: Cannot move song");
-            return;
-        }
-
         Log.i(TAG, "Move song id=" + songId + " to albumid=" + albumId);
         dataManagerStub.moveSong(MoveData.newBuilder()
                 .setSongId(songId)

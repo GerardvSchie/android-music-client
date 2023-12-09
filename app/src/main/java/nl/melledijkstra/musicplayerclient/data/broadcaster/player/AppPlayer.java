@@ -4,13 +4,11 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Locale;
 
-import nl.melledijkstra.musicplayerclient.data.broadcaster.player.model.Song;
-import nl.melledijkstra.musicplayerclient.data.broadcaster.player.model.Album;
 import nl.melledijkstra.musicplayerclient.data.broadcaster.player.model.PlayerState;
+import nl.melledijkstra.musicplayerclient.data.broadcaster.player.model.Song;
 import nl.melledijkstra.musicplayerclient.grpc.MMPStatus;
 
 /**
@@ -21,7 +19,6 @@ public class AppPlayer implements Player {
     static final String TAG = "AppPlayer";
 
     public PlayerState State = PlayerState.NOTHING_SPECIAL;
-    public ArrayList<Album> Albums = new ArrayList<>();
     public int Volume = -1;
     public boolean Mute = false;
     public Song CurrentSong = null;
@@ -75,7 +72,7 @@ public class AppPlayer implements Player {
     @NonNull
     @Override
     public String toString() {
-        return String.format(Locale.getDefault(), "[state: %s, volume: %d, album count: %d]", State, Volume, Albums.size());
+        return String.format(Locale.getDefault(), "[state: %s, volume: %d, muted: %b, song: %s, position: %f, ellapsedTime: %d]", State, Volume, Mute, CurrentSong, SongPosition, SongElapsedTime);
     }
 
     @Override
