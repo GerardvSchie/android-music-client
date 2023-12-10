@@ -1,4 +1,4 @@
-package nl.melledijkstra.musicplayerclient.data.broadcaster.model;
+package nl.melledijkstra.musicplayerclient.service.model;
 
 import android.content.Intent;
 import android.util.Log;

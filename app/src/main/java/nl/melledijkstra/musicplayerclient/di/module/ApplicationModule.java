@@ -9,11 +9,11 @@ import dagger.Module;
 import dagger.Provides;
 import nl.melledijkstra.musicplayerclient.data.AppDataManager;
 import nl.melledijkstra.musicplayerclient.data.DataManager;
-import nl.melledijkstra.musicplayerclient.data.broadcaster.AppBroadcaster;
-import nl.melledijkstra.musicplayerclient.data.broadcaster.Broadcaster;
 import nl.melledijkstra.musicplayerclient.data.prefs.AppPreferencesHelper;
 import nl.melledijkstra.musicplayerclient.data.prefs.PreferencesHelper;
 import nl.melledijkstra.musicplayerclient.di.ApplicationContext;
+import nl.melledijkstra.musicplayerclient.service.AppPlayerService;
+import nl.melledijkstra.musicplayerclient.service.BaseService;
 
 @Module
 public class ApplicationModule {
@@ -48,7 +48,7 @@ public class ApplicationModule {
 
     @Provides
     @Singleton
-    Broadcaster provideBroadcaster(AppBroadcaster appBroadcaster) {
-        return appBroadcaster;
+    BaseService provideBaseService(AppPlayerService appPlayerService) {
+        return appPlayerService;
     }
 }

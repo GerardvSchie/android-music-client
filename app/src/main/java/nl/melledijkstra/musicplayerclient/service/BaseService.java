@@ -7,31 +7,21 @@ import android.util.Log;
 
 import androidx.annotation.Nullable;
 
-import nl.melledijkstra.musicplayerclient.App;
-import nl.melledijkstra.musicplayerclient.di.component.DaggerServiceComponent;
-import nl.melledijkstra.musicplayerclient.di.component.ServiceComponent;
-import nl.melledijkstra.musicplayerclient.di.module.ServiceModule;
-
 public abstract class BaseService extends Service implements PlayerService {
     static final String TAG = "BaseService";
 
-    ServiceComponent mServiceComponent;
-
     @Override
-    public void onCreate() {
-        Log.i(TAG, "onCreate");
-        super.onCreate();
-        mServiceComponent = DaggerServiceComponent.builder()
-                .serviceModule(new ServiceModule(this))
-                .applicationComponent(((App) getApplication()).getComponent())
-                .build();
-
-        mServiceComponent.inject(this);
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        Log.i(TAG, "Serviced started");
+        return START_NOT_STICKY;
+//        return START_STICKY;
     }
 
-    public ServiceComponent getServiceComponent() {
-        assert mServiceComponent != null : "Service must be filled";
-        return mServiceComponent;
+    @Override
+    public void onDestroy() {
+        Log.i(TAG, "onDestroy");
+        super.onDestroy();
+        stopForeground(true);
     }
 
     @Nullable

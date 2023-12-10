@@ -1,6 +1,8 @@
 package nl.melledijkstra.musicplayerclient;
 
 import android.app.Application;
+import android.content.Context;
+import android.content.Intent;
 
 import javax.inject.Inject;
 
@@ -8,10 +10,14 @@ import nl.melledijkstra.musicplayerclient.data.DataManager;
 import nl.melledijkstra.musicplayerclient.di.component.ApplicationComponent;
 import nl.melledijkstra.musicplayerclient.di.component.DaggerApplicationComponent;
 import nl.melledijkstra.musicplayerclient.di.module.ApplicationModule;
+import nl.melledijkstra.musicplayerclient.service.AppPlayerService;
+import nl.melledijkstra.musicplayerclient.service.BaseService;
 
 public class App extends Application {
     @Inject
     DataManager mDataManager;
+    @Inject
+    BaseService mBaseService;
     ApplicationComponent mApplicationComponent;
 
     // If app is in DEBUG mode then no connection is needed and dummy data is used
@@ -24,6 +30,11 @@ public class App extends Application {
                 .applicationModule(new ApplicationModule(this)).build();
 
         mApplicationComponent.inject(this);
+        assert mBaseService != null;
+        Context context = getApplicationContext();
+        assert context != null;
+        Intent intent = AppPlayerService.getStartIntent(App.this);
+        startService(intent);
     }
 
     public ApplicationComponent getComponent() {

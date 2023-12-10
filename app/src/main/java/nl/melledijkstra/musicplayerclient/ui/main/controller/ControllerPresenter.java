@@ -11,109 +11,74 @@ import java.util.TimerTask;
 import javax.inject.Inject;
 
 import nl.melledijkstra.musicplayerclient.data.DataManager;
-import nl.melledijkstra.musicplayerclient.data.broadcaster.model.Action;
-import nl.melledijkstra.musicplayerclient.data.broadcaster.player.AppPlayer;
+import nl.melledijkstra.musicplayerclient.service.BaseService;
+import nl.melledijkstra.musicplayerclient.service.model.Action;
+import nl.melledijkstra.musicplayerclient.service.player.AppPlayer;
 import nl.melledijkstra.musicplayerclient.ui.base.BasePresenter;
 import nl.melledijkstra.musicplayerclient.utils.PlayerTimer;
 
 public class ControllerPresenter<V extends ControllerMPCView> extends BasePresenter<V> implements ControllerMPCPresenter<V> {
     static final String TAG = "ControllerPresenter";
     PlayerTimer playerTimer = new PlayerTimer();
-    IntentFilter mBroadcastFilter = new IntentFilter();
-
     @Inject
-    public ControllerPresenter(DataManager dataManager) {
-        super(dataManager);
+    public ControllerPresenter(DataManager dataManager, BaseService baseService) {
+        super(dataManager, baseService);
+
+        IntentFilter mBroadcastFilter = new IntentFilter();
         mBroadcastFilter.addAction(Action.ACTION_NEXT.toString());
 //        mBroadcastFilter.addAction(MelonPlayerService.DISCONNECTED);
-    }
-
-    @Override
-    public boolean isConnected() {
-        return getDataManager().isConnected();
-    }
-
-    @Override
-    public void onAttach(V mvpView) {
-        Log.v(TAG, "onAttach");
-        super.onAttach(mvpView);
-        registerReceiver();
-    }
-
-    @Override
-    public void onDetach() {
-        Log.v(TAG, "onDetach");
-        super.onDetach();
-        unregisterReceiver();
-    }
-
-    @Override
-    public void registerReceiver() {
-        getDataManager().registerReceiver(bReceiver, mBroadcastFilter);
-    }
-
-    @Override
-    public void unregisterReceiver() {
-        getDataManager().unRegisterReceiver(bReceiver);
-    }
-
-    public void registerStateChangeListener(AppPlayer.StateUpdateListener listener) {
-        getDataManager().registerStateChangeListener(listener);
-    }
-
-    public void unRegisterStateChangeListener(AppPlayer.StateUpdateListener listener) {
-        getDataManager().unRegisterStateChangeListener(listener);
+        mBaseService.registerReceiver(bReceiver, mBroadcastFilter);
     }
 
     @Override
     public void playPause() {
-        if (!isConnected()) {
+        if (!mBaseService.isConnected()) {
             Log.w(TAG, "Not connected: Cannot play/pause");
             return;
         }
 
-        getDataManager().playPause();
-        mView.updatePlayPause(getDataManager().getAppPlayer());
+        mBaseService.playPause();
+        mView.updatePlayPause(mBaseService.getAppPlayer());
     }
 
     @Override
     public void previous() {
-        if (!isConnected()) {
+        if (!mBaseService.isConnected()) {
             Log.w(TAG, "Not connected: Cannot go to previous song");
             return;
         }
 
-        getDataManager().previous();
+        mBaseService.previous();
     }
 
     @Override
     public void next() {
-        if (!isConnected()) {
+        if (!mBaseService.isConnected()) {
             Log.w(TAG, "Not connected: Cannot go to next song");
             return;
         }
 
-        getDataManager().next();
+        mBaseService.next();
     }
 
     @Override
     public void changePosition(int position) {
-        getDataManager().changePosition(position);
+        mBaseService.changePosition(position);
     }
 
     @Override
     public void changeVolume(int volume) {
-        getDataManager().changeVolume(volume);
+        mBaseService.changeVolume(volume);
     }
 
     @Override
     public AppPlayer appPlayer() {
-        return getDataManager().getAppPlayer();
+        return mBaseService.getAppPlayer();
     }
 
     @Override
     public void startTimer() {
-        AppPlayer appPlayer = getDataManager().getAppPlayer();
+        AppPlayer appPlayer = mBaseService.getAppPlayer();
         playerTimer.startTimer(appPlayer, new TimerTask() {
             @Override
             public void run() {
@@ -129,7 +94,7 @@ public class ControllerPresenter<V extends ControllerMPCView> extends BasePresen
 
     @Override
     public void resetTimer() {
-        AppPlayer appPlayer = getDataManager().getAppPlayer();
+        AppPlayer appPlayer = mBaseService.getAppPlayer();
         playerTimer.resetTimer(appPlayer, new TimerTask() {
             @Override
             public void run() {
@@ -147,7 +112,7 @@ public class ControllerPresenter<V extends ControllerMPCView> extends BasePresen
             Log.v(TAG, "BROADCAST RECEIVED: " + action);
             switch (action) {
                 case ACTION_NEXT:
-                    getDataManager().retrieveNewStatus();
+                    mBaseService.retrieveNewStatus();
 //                    mView.next();
                     break;
             }

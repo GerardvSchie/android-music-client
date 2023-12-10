@@ -59,25 +59,25 @@ public class ConnectActivity extends BaseActivity implements ConnectMPCView {
         return super.onOptionsItemSelected(item);
     }
 
-    @Override
-    protected void onPause() {
-        Log.v(TAG, "onPause");
-        super.onPause();
-        mPresenter.unregisterReceiver();
-    }
-
-    @Override
-    protected void onResume() {
-        Log.v(TAG, "onResume");
-        super.onResume();
-        if (mPresenter.isConnected()) {
-            Log.i(TAG, "Already connected, opening main activity");
-            openMainActivity();
-            return;
-        }
-
-        mPresenter.registerReceiver();
-    }
+//    @Override
+//    protected void onPause() {
+//        Log.v(TAG, "onPause");
+//        super.onPause();
+//        mPresenter.unregisterReceiver();
+//    }
+//
+//    @Override
+//    protected void onResume() {
+//        Log.v(TAG, "onResume");
+//        super.onResume();
+//        if (mPresenter.isConnected()) {
+//            Log.i(TAG, "Already connected, opening main activity");
+//            openMainActivity();
+//            return;
+//        }
+//
+//        mPresenter.registerReceiver();
+//    }
 
     public void showLoading() {
         mProgressBarConnect.setVisibility(View.VISIBLE);
@@ -113,10 +113,10 @@ public class ConnectActivity extends BaseActivity implements ConnectMPCView {
         Log.v(TAG, "onDestroy");
         super.onDestroy();
         hideLoading();
-        if (!mPresenter.isConnected()) {
-            Log.i(TAG, "onDestroy: Service is not connected, so stopService is called");
-//            stopService(new Intent(this, PlayerService.class));
-        }
+//        if (!mPresenter.isConnected()) {
+//            Log.i(TAG, "onDestroy: Service is not connected, so stopService is called");
+////            stopService(new Intent(this, PlayerService.class));
+//        }
     }
 
     @Override

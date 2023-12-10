@@ -5,8 +5,8 @@ import android.util.Log;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import nl.melledijkstra.musicplayerclient.data.broadcaster.player.AppPlayer;
-import nl.melledijkstra.musicplayerclient.data.broadcaster.player.model.PlayerState;
+import nl.melledijkstra.musicplayerclient.service.player.AppPlayer;
+import nl.melledijkstra.musicplayerclient.service.player.model.PlayerState;
 
 public class PlayerTimer extends Timer {
     static final String TAG = "PlayerTimer";

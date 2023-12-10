@@ -15,9 +15,9 @@ import javax.inject.Inject;
 
 import butterknife.ButterKnife;
 import nl.melledijkstra.musicplayerclient.R;
-import nl.melledijkstra.musicplayerclient.data.broadcaster.player.AppPlayer;
-import nl.melledijkstra.musicplayerclient.data.broadcaster.player.model.PlayerState;
-import nl.melledijkstra.musicplayerclient.data.broadcaster.player.model.Song;
+import nl.melledijkstra.musicplayerclient.service.player.AppPlayer;
+import nl.melledijkstra.musicplayerclient.service.player.model.PlayerState;
+import nl.melledijkstra.musicplayerclient.service.player.model.Song;
 import nl.melledijkstra.musicplayerclient.di.component.ActivityComponent;
 import nl.melledijkstra.musicplayerclient.ui.base.BaseFragment;
 import nl.melledijkstra.musicplayerclient.utils.AlertUtils;
@@ -50,8 +50,6 @@ public class ControllerFragment extends BaseFragment implements ControllerMPCVie
         assert component != null : "No service running?";
         component.inject(this);
         mPresenter.onAttach(this);
-        mPresenter.registerReceiver();
-        mPresenter.registerStateChangeListener(this);
     }
 
     @Override
@@ -65,16 +63,12 @@ public class ControllerFragment extends BaseFragment implements ControllerMPCVie
     public void onPause() {
         super.onPause();
         mPresenter.stopTimer();
-        mPresenter.unregisterReceiver();
-        mPresenter.unRegisterStateChangeListener(this);
     }
 
     @Override
     public void onResume() {
         super.onResume();
         mPresenter.startTimer();
-        mPresenter.registerReceiver();
-        mPresenter.registerStateChangeListener(this);
     }
 
     @Override
@@ -82,8 +76,6 @@ public class ControllerFragment extends BaseFragment implements ControllerMPCVie
         super.onDetach();
         mPresenter.stopTimer();
         mPresenter.onDetach();
-        mPresenter.unregisterReceiver();
-        mPresenter.unRegisterStateChangeListener(this);
     }
 
     @Override
@@ -230,7 +222,7 @@ public class ControllerFragment extends BaseFragment implements ControllerMPCVie
     public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
         if (fromUser) {
             Log.d(TAG, "Progressbar changed by user to " + progress);
-            Song currentSong = mPresenter.getDataManager().getAppPlayer().CurrentSong;
+            Song currentSong = mPresenter.mBaseService.getAppPlayer().CurrentSong;
             if (currentSong == null) {
                 return;
             }

@@ -5,70 +5,71 @@ import android.util.Log;
 import javax.inject.Inject;
 
 import nl.melledijkstra.musicplayerclient.data.DataManager;
-import nl.melledijkstra.musicplayerclient.data.broadcaster.player.model.Album;
+import nl.melledijkstra.musicplayerclient.service.BaseService;
+import nl.melledijkstra.musicplayerclient.service.player.model.Album;
 import nl.melledijkstra.musicplayerclient.ui.base.BasePresenter;
 
 public class SongPresenter<V extends SongMPCView> extends BasePresenter<V> implements SongMPCPresenter<V> {
     final static String TAG = "SongPresenter";
     @Inject
-    public SongPresenter(DataManager dataManager) {
-        super(dataManager);
+    public SongPresenter(DataManager dataManager, BaseService baseService) {
+        super(dataManager, baseService);
     }
     @Override
     public boolean isConnected() {
-        return getDataManager().isConnected();
+        return mBaseService.isConnected();
     }
     @Override
     public void retrieveSongList(Album album) {
-        getDataManager().retrieveSongList((int)album.ID, mView);
+        mBaseService.retrieveSongList((int)album.ID, mView);
     }
     @Override
     public void playSong(int songId) {
-        if (!isConnected()) {
+        if (!mBaseService.isConnected()) {
             Log.w(TAG, "Not connected: Cannot play song (id=" + songId + ")");
             return;
         }
 
-        getDataManager().playSong(songId);
+        mBaseService.playSong(songId);
     }
 
     @Override
     public void addSongNext(int songId) {
-        if (!isConnected()) {
+        if (!mBaseService.isConnected()) {
             Log.w(TAG, "Not connected: Cannot addSongNext song (id=" + songId + ")");
             return;
         }
 
-        getDataManager().addSongNext(songId);
+        mBaseService.addSongNext(songId);
     }
 
     @Override
     public void renameSong(int songId, String newTitle) {
-        if (!isConnected()) {
+        if (!mBaseService.isConnected()) {
             Log.w(TAG, "Not connected: Cannot rename song");
             return;
         }
 
-        getDataManager().renameSong(songId, newTitle);
+        mBaseService.renameSong(songId, newTitle);
     }
 
     @Override
     public void deleteSong(int songId) {
-        if (!isConnected()) {
+        if (!mBaseService.isConnected()) {
             Log.w(TAG, "Not connected: Cannot delete song");
             return;
         }
 
-        getDataManager().deleteSong(songId);
+        mBaseService.deleteSong(songId);
     }
 
     @Override
     public void moveSong(int songId, int albumId) {
-        if (!isConnected()) {
+        if (!mBaseService.isConnected()) {
             Log.w(TAG, "Not connected: Cannot move song");
             return;
         }
 
-        getDataManager().moveSong(songId, albumId);
+        mBaseService.moveSong(songId, albumId);
     }
 }

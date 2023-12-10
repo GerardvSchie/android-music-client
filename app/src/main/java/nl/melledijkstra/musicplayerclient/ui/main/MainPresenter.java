@@ -10,25 +10,22 @@ import nl.melledijkstra.musicplayerclient.ui.base.BasePresenter;
 
 public class MainPresenter<V extends MainMPCView> extends BasePresenter<V> implements MainMPCPresenter<V> {
     static final String TAG = "MainPresenter";
-
     @Inject
-    BaseService mPlayerService;
-
-    @Inject
-    public MainPresenter(DataManager dataManager) {
-        super(dataManager);
+    public MainPresenter(DataManager dataManager, BaseService baseService) {
+        super(dataManager, baseService);
     }
 
     public boolean isConnected() {
-        return getDataManager().isConnected();
+        return mBaseService.isConnected();
     }
 
     @Override
     public void connect() {
-        if (getDataManager().isConnected()) {
+        if (mBaseService.isConnected()) {
             Log.w(TAG, "Try to connect whilst already connected, do nothing");
             return;
         }
-        getDataManager().connectBroadcaster(getDataManager().getCurrentHostIP(), getDataManager().getCurrentHostPort());
+
+        mBaseService.connectPlayerServer(getDataManager().getCurrentHostIP(), getDataManager().getCurrentHostPort());
     }
 }

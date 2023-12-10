@@ -1,4 +1,4 @@
-package nl.melledijkstra.musicplayerclient.data.broadcaster.player.model;
+package nl.melledijkstra.musicplayerclient.service.player.model;
 
 public interface Protoble<T> {
     /**

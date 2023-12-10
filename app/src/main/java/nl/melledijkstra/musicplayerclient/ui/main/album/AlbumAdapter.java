@@ -18,7 +18,7 @@ import java.util.ArrayList;
 import java.util.Objects;
 
 import nl.melledijkstra.musicplayerclient.R;
-import nl.melledijkstra.musicplayerclient.data.broadcaster.player.model.Album;
+import nl.melledijkstra.musicplayerclient.service.player.model.Album;
 
 public class AlbumAdapter extends ArrayAdapter<Album> {
     static final String TAG = "AlbumAdapter";
@@ -85,9 +85,5 @@ public class AlbumAdapter extends ArrayAdapter<Album> {
 
     public void setAlbums(ArrayList<Album> albums) {
         this.albums = albums;
-    }
-
-    public ArrayList<Album> albums() {
-        return albums;
     }
 }

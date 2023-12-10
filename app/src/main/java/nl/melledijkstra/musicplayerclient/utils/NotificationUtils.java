@@ -10,8 +10,8 @@ import android.util.Log;
 import androidx.core.app.NotificationCompat;
 
 import nl.melledijkstra.musicplayerclient.R;
-import nl.melledijkstra.musicplayerclient.data.broadcaster.player.AppPlayer;
-import nl.melledijkstra.musicplayerclient.data.broadcaster.player.model.Song;
+import nl.melledijkstra.musicplayerclient.service.player.AppPlayer;
+import nl.melledijkstra.musicplayerclient.service.player.model.Song;
 
 public final class NotificationUtils {
     static final String TAG = "NotificationUtils";

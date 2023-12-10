@@ -18,7 +18,7 @@ import javax.inject.Inject;
 import butterknife.ButterKnife;
 import nl.melledijkstra.musicplayerclient.App;
 import nl.melledijkstra.musicplayerclient.R;
-import nl.melledijkstra.musicplayerclient.data.broadcaster.player.model.Album;
+import nl.melledijkstra.musicplayerclient.service.player.model.Album;
 import nl.melledijkstra.musicplayerclient.di.component.ActivityComponent;
 import nl.melledijkstra.musicplayerclient.ui.base.BaseFragment;
 import nl.melledijkstra.musicplayerclient.ui.main.MainActivity;

@@ -9,7 +9,4 @@ import nl.melledijkstra.musicplayerclient.ui.base.MPCPresenter;
 public interface ConnectMPCPresenter<V extends ConnectMPCView> extends MPCPresenter<V> {
     void onConnectClick(String ip);
     void onCreateEditTextIP(EditText editTextIP);
-    boolean isConnected();
-    void registerReceiver();
-    void unregisterReceiver();
 }

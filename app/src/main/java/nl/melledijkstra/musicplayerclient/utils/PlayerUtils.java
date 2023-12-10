@@ -2,8 +2,8 @@ package nl.melledijkstra.musicplayerclient.utils;
 
 import androidx.annotation.Nullable;
 
-import nl.melledijkstra.musicplayerclient.data.broadcaster.player.model.Album;
-import nl.melledijkstra.musicplayerclient.data.broadcaster.player.model.Song;
+import nl.melledijkstra.musicplayerclient.service.player.model.Album;
+import nl.melledijkstra.musicplayerclient.service.player.model.Song;
 
 public class PlayerUtils {
     private PlayerUtils() {

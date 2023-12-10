@@ -14,8 +14,8 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import butterknife.ButterKnife;
 import nl.melledijkstra.musicplayerclient.R;
-import nl.melledijkstra.musicplayerclient.data.broadcaster.player.model.Album;
-import nl.melledijkstra.musicplayerclient.data.broadcaster.player.model.Song;
+import nl.melledijkstra.musicplayerclient.service.player.model.Album;
+import nl.melledijkstra.musicplayerclient.service.player.model.Song;
 import nl.melledijkstra.musicplayerclient.ui.base.BaseViewHolder;
 import nl.melledijkstra.musicplayerclient.utils.AlertUtils;
 import nl.melledijkstra.musicplayerclient.utils.MathUtils;

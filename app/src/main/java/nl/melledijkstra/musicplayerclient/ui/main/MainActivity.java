@@ -25,7 +25,7 @@ import javax.inject.Inject;
 import butterknife.ButterKnife;
 import kotlin.NotImplementedError;
 import nl.melledijkstra.musicplayerclient.R;
-import nl.melledijkstra.musicplayerclient.data.broadcaster.player.model.Album;
+import nl.melledijkstra.musicplayerclient.service.player.model.Album;
 import nl.melledijkstra.musicplayerclient.ui.base.BaseActivity;
 import nl.melledijkstra.musicplayerclient.ui.connect.ConnectActivity;
 import nl.melledijkstra.musicplayerclient.ui.main.album.AlbumFragment;
