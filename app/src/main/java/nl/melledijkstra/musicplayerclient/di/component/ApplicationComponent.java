@@ -10,13 +10,11 @@ import nl.melledijkstra.musicplayerclient.App;
 import nl.melledijkstra.musicplayerclient.data.DataManager;
 import nl.melledijkstra.musicplayerclient.di.ApplicationContext;
 import nl.melledijkstra.musicplayerclient.di.module.ApplicationModule;
-import nl.melledijkstra.musicplayerclient.service.PlayerService;
 
 @Singleton
 @Component(modules = ApplicationModule.class)
 public interface ApplicationComponent {
     void inject(App app);
-    void inject(PlayerService service);
     @ApplicationContext
     Context context();
     Application application();

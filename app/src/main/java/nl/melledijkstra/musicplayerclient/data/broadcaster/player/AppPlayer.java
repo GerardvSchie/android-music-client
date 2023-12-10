@@ -37,22 +37,6 @@ public class AppPlayer implements Player {
         stateListeners.remove(listener);
     }
 
-    private AppPlayer() {
-        // Private constructor so only static instance can be made
-    }
-
-    /**
-     * Get the one and only instance of MelonPlayer object
-     * see Singleton Pattern
-     * @return The one and only instance of this class
-     */
-    public static AppPlayer getInstance() {
-        if (instance == null) {
-            instance = new AppPlayer();
-        }
-        return instance;
-    }
-
     // Set the new state of the melon player
     public void setState(MMPStatus status) {
         Log.i(TAG, "Setting new state of MelonPlayer");
@@ -65,7 +49,7 @@ public class AppPlayer implements Player {
 
         Log.d(TAG, String.format(Locale.getDefault(), "%s '%s' volume: %d, position: %f, mute: %b", State, CurrentSong, Volume, SongPosition, Mute));
         for (StateUpdateListener listener : stateListeners) {
-            listener.MelonPlayerStateUpdated();
+            listener.PlayerStateUpdated();
         }
     }
 
@@ -82,6 +66,6 @@ public class AppPlayer implements Player {
 
     public interface StateUpdateListener {
         // Invoked when status is changed
-        void MelonPlayerStateUpdated();
+        void PlayerStateUpdated();
     }
 }

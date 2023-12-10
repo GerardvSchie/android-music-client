@@ -9,6 +9,8 @@ import nl.melledijkstra.musicplayerclient.App;
 import nl.melledijkstra.musicplayerclient.di.component.ActivityComponent;
 import nl.melledijkstra.musicplayerclient.di.component.DaggerActivityComponent;
 import nl.melledijkstra.musicplayerclient.di.module.ActivityModule;
+import nl.melledijkstra.musicplayerclient.di.module.ServiceModule;
+import nl.melledijkstra.musicplayerclient.service.AppPlayerService;
 
 public abstract class BaseActivity extends AppCompatActivity implements MPCView, BaseFragment.Callback {
     ActivityComponent mActivityComponent;
@@ -19,6 +21,7 @@ public abstract class BaseActivity extends AppCompatActivity implements MPCView,
         super.onCreate(savedInstanceState);
         mActivityComponent = DaggerActivityComponent.builder()
                 .activityModule(new ActivityModule(this))
+                .serviceModule(new ServiceModule(new AppPlayerService()))
                 .applicationComponent(((App) getApplication()).getComponent())
                 .build();
     }

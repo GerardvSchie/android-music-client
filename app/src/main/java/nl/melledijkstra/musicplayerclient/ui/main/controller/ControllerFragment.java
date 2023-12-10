@@ -146,7 +146,7 @@ public class ControllerFragment extends BaseFragment implements ControllerMPCVie
     };
 
     @Override
-    public void MelonPlayerStateUpdated() {
+    public void PlayerStateUpdated() {
         Log.d(TAG, "Updated melonplayer state");
         // This call can be invoked from another thread
         // So make sure we are update UI on the UI thread

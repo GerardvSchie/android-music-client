@@ -1,8 +1,5 @@
 package nl.melledijkstra.musicplayerclient.data.broadcaster;
 
-import static nl.melledijkstra.musicplayerclient.utils.NotificationUtils.createNotificationManager;
-
-import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -44,7 +41,6 @@ import nl.melledijkstra.musicplayerclient.grpc.SongList;
 import nl.melledijkstra.musicplayerclient.grpc.VolumeControl;
 import nl.melledijkstra.musicplayerclient.ui.main.album.AlbumMPCView;
 import nl.melledijkstra.musicplayerclient.ui.main.song.SongMPCView;
-import nl.melledijkstra.musicplayerclient.utils.NotificationUtils;
 
 @Singleton
 public class AppBroadcaster implements Broadcaster {
@@ -53,19 +49,17 @@ public class AppBroadcaster implements Broadcaster {
     // gRPC: Stubs to initiate calls to server
     public MusicPlayerGrpc.MusicPlayerStub musicPlayerStub;
     public DataManagerGrpc.DataManagerStub dataManagerStub;
-    public AppPlayer appPlayer = AppPlayer.getInstance();
+    public AppPlayer appPlayer = new AppPlayer();
 
     // gRPC: Managed channel result should be broadcast
     ManagedChannel channel;
     volatile boolean broadcastConnectionResult = true;
     Context context;
-    NotificationManager notificationManager;
     LocalBroadcastManager mLocalBroadcastManager;
 
     @Inject
     public AppBroadcaster(@ApplicationContext Context context) {
         this.context = context;
-        notificationManager = createNotificationManager(context);
         mLocalBroadcastManager = LocalBroadcastManager.getInstance(context);
     }
 
@@ -205,7 +199,6 @@ public class AppBroadcaster implements Broadcaster {
             dataManagerStub = null;
         }
 
-        NotificationUtils.removeNotification(notificationManager);
         LocalBroadcastManager.getInstance(context).sendBroadcast(Message.DISCONNECTED.toIntent());
         Log.i(TAG, "disconnectBroadcaster: grpc client terminated");
     }
@@ -309,7 +302,6 @@ public class AppBroadcaster implements Broadcaster {
     private void onConnected() {
         Log.v(TAG, "onConnected");
         mLocalBroadcastManager.sendBroadcast(Message.READY.toIntent());
-        showNotification();
 
         musicPlayerStub.registerMMPNotify(MMPStatusRequest.getDefaultInstance(), new StreamObserver<MMPStatus>() {
             @Override
@@ -322,7 +314,7 @@ public class AppBroadcaster implements Broadcaster {
                 } else {
 //                    stopForeground(false);
                 }
-                showNotification();
+//                showNotification();
             }
 
             @Override
@@ -336,10 +328,6 @@ public class AppBroadcaster implements Broadcaster {
                 Log.i(TAG, "onCompleted: Status call done");
             }
         });
-    }
-
-    private void showNotification() {
-        NotificationUtils.showNotification(context, notificationManager, appPlayer);
     }
 
     public AppPlayer getAppPlayer() {

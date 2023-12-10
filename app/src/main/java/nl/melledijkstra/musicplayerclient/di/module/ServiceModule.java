@@ -1,14 +1,28 @@
 package nl.melledijkstra.musicplayerclient.di.module;
 
-import android.app.Service;
+import android.content.Context;
 
 import dagger.Module;
+import dagger.Provides;
+import nl.melledijkstra.musicplayerclient.di.ServiceContext;
+import nl.melledijkstra.musicplayerclient.service.BaseService;
 
 @Module
 public class ServiceModule {
-    final Service mService;
+    final BaseService mBaseService;
 
-    public ServiceModule(Service service) {
-        mService = service;
+    public ServiceModule(BaseService appPlayerService) {
+        mBaseService = appPlayerService;
+    }
+
+    @Provides
+    @ServiceContext
+    Context provideServiceContext() {
+        return mBaseService;
+    }
+
+    @Provides
+    BaseService provideBaseService() {
+        return mBaseService;
     }
 }

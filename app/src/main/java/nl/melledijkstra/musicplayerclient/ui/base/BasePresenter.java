@@ -3,7 +3,7 @@ package nl.melledijkstra.musicplayerclient.ui.base;
 import nl.melledijkstra.musicplayerclient.data.DataManager;
 
 public class BasePresenter<V extends MPCView> implements MPCPresenter<V> {
-    final DataManager mDataManager;
+    DataManager mDataManager;
     protected V mView;
 
     public BasePresenter(DataManager dataManager) {
