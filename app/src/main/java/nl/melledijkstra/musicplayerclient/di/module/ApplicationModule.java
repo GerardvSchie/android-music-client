@@ -51,4 +51,19 @@ public class ApplicationModule {
     BaseService provideBaseService(AppPlayerService appPlayerService) {
         return appPlayerService;
     }
+
+//    @Provides
+//    @Singleton
+//    BaseService provideBaseService() {
+//        Intent intent = AppPlayerService.getStartIntent(provideContext());
+//        ComponentName name =  provideApplication().getApplicationContext().startService(intent);
+//        provideBaseService().getSystemServiceName(AppPlayerService.class);
+//        return provideApplication().getApplicationContext().getSer
+//    }
+
+//    @Provides
+//    @Singleton
+//    BaseService provideBaseService(Retrofit retrofit) {
+//        return retrofit.create(AppPlayerService.class);
+//    }
 }

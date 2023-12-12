@@ -22,5 +22,4 @@ public interface PlayerService extends AppPlayer.StateUpdateListener {
     void renameSong(int songId, String newTitle);
     void deleteSong(int songId);
     void moveSong(int songId, int albumId);
-
 }

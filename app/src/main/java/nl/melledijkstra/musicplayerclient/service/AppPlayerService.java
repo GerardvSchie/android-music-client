@@ -1,10 +1,11 @@
 package nl.melledijkstra.musicplayerclient.service;
 
-import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Binder;
+import android.os.IBinder;
 import android.util.Log;
 
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
@@ -44,20 +45,25 @@ import nl.melledijkstra.musicplayerclient.ui.main.song.SongMPCView;
 
 // This service interacts with the Player server
 public class AppPlayerService extends BaseService implements PlayerService {
+    private final IBinder binder = new LocalBinder();
+
+    public class LocalBinder extends Binder {
+        public AppPlayerService getService() {
+            return AppPlayerService.this;
+        }
+    }
+
     static final String TAG = "AppService";
 
     // gRPC: Stubs to initiate calls to server
     public MusicPlayerGrpc.MusicPlayerStub musicPlayerStub;
     public DataManagerGrpc.DataManagerStub dataManagerStub;
-    AppPlayer appPlayer;
+    ManagedChannel channel;
 
     // gRPC: Managed channel result should be broadcast
-    ManagedChannel channel;
     LocalBroadcastManager mLocalBroadcastManager;
-
-    // Notification stuff
-    NotificationManager notificationManager;
-    Context context;
+    AppPlayer appPlayer;
+    PlayerNotificationManager playerNotificationManager;
 
     public static Intent getStartIntent(Context context) {
         return new Intent(context, AppPlayerService.class);
@@ -65,32 +71,50 @@ public class AppPlayerService extends BaseService implements PlayerService {
 
     @Inject
     public AppPlayerService(@ApplicationContext Context context) {
-        this.context = context;
+        Log.e(TAG, "CONSTRUCTOR");
         assert context != null;
+        playerNotificationManager = new PlayerNotificationManager(context);
         mLocalBroadcastManager = LocalBroadcastManager.getInstance(context);
         appPlayer = new AppPlayer(this);
+        startForeground(PlayerNotificationManager.NOTIFICATION_ID, playerNotificationManager.createNotification(appPlayer));
+    }
+
+//    Context context;
+//
+//    @Nullable
+//    @Override
+//    public IBinder onBind(Intent intent) {
+//        return binder;
+//    }
+//
+//    public void setContext(Context context) {
+//        this.context = context;
+//    }
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+    }
+
+    public AppPlayer getAppPlayer() {
+        return appPlayer;
     }
 
     @Override
     public void PlayerStateUpdated() {
-        showNotification();
-    }
-
-    private void showNotification() {
-        Log.i(TAG, "Notification stuff not implemented");
-//        NotificationUtils.showNotification(getBaseContext(), notificationManager, mDataManager.getAppPlayer());
+        playerNotificationManager.showNotification(appPlayer);
     }
 
     //region GRPC Server
     // Runnable passed to grpc channel to run when state is changed
+    public void checkChannelConnected() {
+        assert channel != null : "Channel is null";
+    }
+
     final Runnable grpcStateChangeListener = new Runnable() {
         @Override
         public void run() {
-            if (channel == null) {
-                Log.w(TAG, "Channel is null, can't run");
-                return;
-            }
-
+            checkChannelConnected();
             ConnectivityState state = getState(false);
             assert state != null;
             Log.d(TAG, "STATE CHANGED: " + state);
@@ -123,91 +147,18 @@ public class AppPlayerService extends BaseService implements PlayerService {
     private void onConnected() {
         Log.v(TAG, "onConnected");
         mLocalBroadcastManager.sendBroadcast(Message.READY.toIntent());
-        musicPlayerStub.registerMMPNotify(MMPStatusRequest.getDefaultInstance(), new StreamObserver<MMPStatus>() {
-            @Override
-            public void onNext(MMPStatus status) {
-                Log.v(TAG, "onNext called");
-                appPlayer.setState(status);
-                // TODO: update the player and that should update notification
-                if (status.getState() == MMPStatus.State.PLAYING) {
-//                    startForeground(NOTIFICATION_ID, musicPlaybackNotification);
-                } else {
-//                    stopForeground(false);
-                }
-//                showNotification();
-            }
-
-            @Override
-            public void onError(Throwable t) {
-                Log.w(TAG, "registerMMPNotify: " + t.getMessage());
-                disconnectPlayerServer();
-            }
-
-            @Override
-            public void onCompleted() {
-                Log.i(TAG, "onCompleted: Status call done");
-            }
-        });
+        musicPlayerStub.registerMMPNotify(MMPStatusRequest.getDefaultInstance(), statusStreamObserver);
     }
 
     private ConnectivityState getState(boolean requestConnection) {
-        if (channel == null) {
-            Log.w(TAG, "Getting state whilst channel is null?");
-            return null;
-        }
-
+        checkChannelConnected();
         ConnectivityState state = channel.getState(requestConnection);
         Log.d(TAG, "Current state " + state.toString());
         return state;
     }
-    //endregion
-
-    //region LocalBroadcaster
-    final StreamObserver<MMPStatus> statusStreamObserver = new StreamObserver<MMPStatus>() {
-        @Override
-        public void onNext(MMPStatus newState) {
-            Log.d(TAG, String.format("onNext in streamObserver with state %s", newState));
-            appPlayer.setState(newState);
-            if (newState.getState() == MMPStatus.State.PLAYING) {
-//                context.startForeground(NOTIFICATION_ID, musicPlaybackNotification);
-            } else {
-                stopForeground(false);
-            }
-        }
-
-        @Override
-        public void onError(Throwable t) {
-            t.printStackTrace();
-        }
-
-        @Override
-        public void onCompleted() {
-        }
-    };
-
-    public StreamObserver<MMPResponse> defaultMMPResponseStreamObserver = new StreamObserver<MMPResponse>() {
-        @Override
-        public void onNext(MMPResponse response) {
-            if (response.getResult() == MMPResponse.Result.ERROR
-                    && !response.getError().isEmpty()) {
-                Log.w(TAG, "GRPC SERVER: " + response.getError());
-            }
-            if (!response.getMessage().isEmpty() && context != null) {
-                Log.i(TAG, "GRPC SERVER: " + response.getMessage());
-            }
-        }
-
-        @Override
-        public void onError(Throwable t) {
-            t.printStackTrace();
-        }
-
-        @Override
-        public void onCompleted() { }
-    };
 
     public void connectPlayerServer(String ip, int port) {
-        if (isConnected()) {
+        if (channel != null) {
             disconnectPlayerServer();
         }
         // Create communication with MusicPlayerServer
@@ -226,7 +177,7 @@ public class AppPlayerService extends BaseService implements PlayerService {
             return;
         }
 
-        Log.i(TAG, "disconnectBroadcaster: shutting down grpc client");
+        Log.i(TAG, "disconnectPlayerServer: shutting down grpc client");
         try {
             channel.awaitTermination(5, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
@@ -238,9 +189,11 @@ public class AppPlayerService extends BaseService implements PlayerService {
         }
 
         mLocalBroadcastManager.sendBroadcast(Message.DISCONNECTED.toIntent());
-        Log.i(TAG, "disconnectBroadcaster: grpc client terminated");
+        Log.i(TAG, "disconnectPlayerServer: grpc client terminated");
     }
+    //endregion
 
+    //region LocalBroadcaster
     @Override
     public Intent registerReceiver(BroadcastReceiver receiver, IntentFilter filter) {
         assert receiver != null && filter != null;
@@ -257,6 +210,7 @@ public class AppPlayerService extends BaseService implements PlayerService {
     }
     //endregion
 
+    //region Commands
     public void retrieveAlbumList(AlbumMPCView mView) {
         musicPlayerStub.retrieveAlbumList(MediaData.getDefaultInstance(), new StreamObserver<AlbumList>() {
             @Override
@@ -307,11 +261,6 @@ public class AppPlayerService extends BaseService implements PlayerService {
         });
     }
 
-    public AppPlayer getAppPlayer() {
-        return appPlayer;
-    }
-
-    //region Commands
     public void retrieveNewStatus() {
         musicPlayerStub.retrieveMMPStatus(MMPStatusRequest.getDefaultInstance(), statusStreamObserver);
     }
@@ -342,27 +291,20 @@ public class AppPlayerService extends BaseService implements PlayerService {
     }
 
     public void changeVolume(int newVolume) {
-        if (!isConnected()) {
-            Log.w(TAG, "Not connected: Cannot change volume");
-            return;
-        }
-
+        checkChannelConnected();
         Log.i(TAG, "Changing volume of song to " + newVolume);
         musicPlayerStub.changeVolume(VolumeControl.newBuilder().setVolumeLevel(newVolume).build(), defaultMMPResponseStreamObserver);
     }
 
     public void changePosition(int position) {
-        if (!isConnected()) {
-            Log.w(TAG, "Not connected: Cannot change position");
-            return;
-        }
-
+        checkChannelConnected();
         Log.i(TAG, "Changing position of song to " + position);
         musicPlayerStub.changePosition(PositionControl.newBuilder()
                 .setPosition(position).build(), defaultMMPResponseStreamObserver);
     }
 
     public void addSongNext(int songId) {
+        checkChannelConnected();
         Log.i(TAG, "Sent addSongNext command for songID: " + songId);
         musicPlayerStub.addNext(MediaData.newBuilder()
                 .setType(MediaType.SONG)
@@ -370,6 +312,7 @@ public class AppPlayerService extends BaseService implements PlayerService {
     }
 
     public void renameSong(int songId, String newTitle) {
+        checkChannelConnected();
         Log.i(TAG, "Rename song id=" + songId + " to '" + newTitle + "'");
         dataManagerStub.renameSong(RenameData.newBuilder()
                 .setId(songId)
@@ -377,17 +320,63 @@ public class AppPlayerService extends BaseService implements PlayerService {
     }
 
     public void deleteSong(int songId) {
+        checkChannelConnected();
         Log.i(TAG, "Deleting song id=" + songId);
         dataManagerStub.deleteSong(MediaData.newBuilder()
                 .setId(songId).build(), defaultMMPResponseStreamObserver);
     }
 
     public void moveSong(int songId, int albumId) {
+        checkChannelConnected();
         Log.i(TAG, "Move song id=" + songId + " to albumid=" + albumId);
         dataManagerStub.moveSong(MoveData.newBuilder()
                 .setSongId(songId)
                 .setAlbumId(albumId)
                 .build(), defaultMMPResponseStreamObserver);
     }
+
+    final StreamObserver<MMPStatus> statusStreamObserver = new StreamObserver<MMPStatus>() {
+        @Override
+        public void onNext(MMPStatus newState) {
+            Log.d(TAG, String.format("onNext in streamObserver with state %s", newState));
+            appPlayer.setState(newState);
+            assert playerNotificationManager != null && appPlayer != null;
+            if (newState.getState() == MMPStatus.State.PLAYING) {
+                startForeground(PlayerNotificationManager.NOTIFICATION_ID, playerNotificationManager.createNotification(appPlayer));
+            } else {
+//                stopForeground(false);
+            }
+        }
+
+        @Override
+        public void onError(Throwable t) {
+            t.printStackTrace();
+        }
+
+        @Override
+        public void onCompleted() {
+        }
+    };
+
+    public StreamObserver<MMPResponse> defaultMMPResponseStreamObserver = new StreamObserver<MMPResponse>() {
+        @Override
+        public void onNext(MMPResponse response) {
+            if (response.getResult() == MMPResponse.Result.ERROR
+                    && !response.getError().isEmpty()) {
+                Log.w(TAG, "GRPC SERVER: " + response.getError());
+            }
+            if (!response.getMessage().isEmpty()) {
+                Log.i(TAG, "GRPC SERVER: " + response.getMessage());
+            }
+        }
+
+        @Override
+        public void onError(Throwable t) {
+            t.printStackTrace();
+        }
+
+        @Override
+        public void onCompleted() { }
+    };
     //endregion
 }

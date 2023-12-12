@@ -33,7 +33,8 @@ public class App extends Application {
         assert mBaseService != null;
         Context context = getApplicationContext();
         assert context != null;
-        Intent intent = AppPlayerService.getStartIntent(App.this);
+        // This instead of App.this since that does not exist
+        Intent intent = AppPlayerService.getStartIntent(this);
         startService(intent);
     }
 

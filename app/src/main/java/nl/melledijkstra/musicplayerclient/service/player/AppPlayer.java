@@ -32,7 +32,7 @@ public class AppPlayer {
 
     // Set the new state of the melon player
     public void setState(MMPStatus status) {
-        Log.i(TAG, "Setting new state of MelonPlayer");
+        Log.i(TAG, "Setting new state of player");
         CurrentSong = new Song(status.getCurrentSong());
         State = PlayerState.valueOfOrNothing(status.getState());
         Volume = status.getVolume();
@@ -40,7 +40,7 @@ public class AppPlayer {
         SongElapsedTime = status.getElapsedTime();
         Mute = status.getMute();
 
-        Log.d(TAG, String.format(Locale.getDefault(), "%s '%s' volume: %d, position: %f, mute: %b", State, CurrentSong, Volume, SongPosition, Mute));
+        Log.d(TAG, toString());
         stateListener.PlayerStateUpdated();
     }
 
