@@ -10,7 +10,6 @@ import nl.melledijkstra.musicplayerclient.App;
 import nl.melledijkstra.musicplayerclient.data.DataManager;
 import nl.melledijkstra.musicplayerclient.di.ApplicationContext;
 import nl.melledijkstra.musicplayerclient.di.module.ApplicationModule;
-import nl.melledijkstra.musicplayerclient.service.BaseService;
 
 @Singleton
 @Component(modules = ApplicationModule.class)
@@ -20,5 +19,4 @@ public interface ApplicationComponent {
     Context context();
     Application application();
     DataManager getDataManager();
-    BaseService getBaseService();
 }

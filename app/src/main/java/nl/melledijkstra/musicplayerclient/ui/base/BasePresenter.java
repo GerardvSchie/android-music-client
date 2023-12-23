@@ -1,16 +1,14 @@
 package nl.melledijkstra.musicplayerclient.ui.base;
 
 import nl.melledijkstra.musicplayerclient.data.DataManager;
-import nl.melledijkstra.musicplayerclient.service.BaseService;
 
 public class BasePresenter<V extends MPCView> implements MPCPresenter<V> {
     final public DataManager mDataManager;
-    final public BaseService mBaseService;
+
     protected V mView;
 
-    public BasePresenter(DataManager dataManager, BaseService baseService) {
+    public BasePresenter(DataManager dataManager) {
         mDataManager = dataManager;
-        mBaseService = baseService;
     }
 
     @Override

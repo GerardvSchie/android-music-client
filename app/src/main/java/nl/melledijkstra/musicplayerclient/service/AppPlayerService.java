@@ -1,6 +1,7 @@
 package nl.melledijkstra.musicplayerclient.service;
 
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -14,13 +15,10 @@ import java.util.ArrayList;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
-import javax.inject.Inject;
-
 import io.grpc.ConnectivityState;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.stub.StreamObserver;
-import nl.melledijkstra.musicplayerclient.di.ApplicationContext;
 import nl.melledijkstra.musicplayerclient.grpc.AlbumList;
 import nl.melledijkstra.musicplayerclient.grpc.DataManagerGrpc;
 import nl.melledijkstra.musicplayerclient.grpc.MMPResponse;
@@ -45,8 +43,12 @@ import nl.melledijkstra.musicplayerclient.ui.main.song.SongMPCView;
 
 // This service interacts with the Player server
 public class AppPlayerService extends BaseService implements PlayerService {
-    private final IBinder binder = new LocalBinder();
-
+    private final IBinder mServiceBinder = new LocalBinder();
+    @Override
+    public IBinder onBind(Intent intent) {
+        return mServiceBinder;
+    }
+    // This binder gives the service to the binding object
     public class LocalBinder extends Binder {
         public AppPlayerService getService() {
             return AppPlayerService.this;
@@ -65,35 +67,26 @@ public class AppPlayerService extends BaseService implements PlayerService {
     AppPlayer appPlayer;
     PlayerNotificationManager playerNotificationManager;
 
-    public static Intent getStartIntent(Context context) {
-        return new Intent(context, AppPlayerService.class);
+    @Override
+    public ComponentName startService(Intent service) {
+        Log.e(TAG, "startService");
+        return super.startService(service);
     }
-
-    @Inject
-    public AppPlayerService(@ApplicationContext Context context) {
-        Log.e(TAG, "CONSTRUCTOR");
-        assert context != null;
-        playerNotificationManager = new PlayerNotificationManager(context);
-        mLocalBroadcastManager = LocalBroadcastManager.getInstance(context);
-        appPlayer = new AppPlayer(this);
-        startForeground(PlayerNotificationManager.NOTIFICATION_ID, playerNotificationManager.createNotification(appPlayer));
-    }
-
-//    Context context;
-//
-//    @Nullable
-//    @Override
-//    public IBinder onBind(Intent intent) {
-//        return binder;
-//    }
-//
-//    public void setContext(Context context) {
-//        this.context = context;
-//    }
 
     @Override
     public void onCreate() {
+        Log.e(TAG, "onCreate");
         super.onCreate();
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        Log.e(TAG, "onStartCommand");
+        return super.onStartCommand(intent, flags, startId);
+    }
+
+    public static Intent getStartIntent(Context context) {
+        return new Intent(context, AppPlayerService.class);
     }
 
     public AppPlayer getAppPlayer() {

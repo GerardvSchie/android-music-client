@@ -13,8 +13,8 @@ public abstract class BaseService extends Service implements PlayerService {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.i(TAG, "Serviced started");
-        return START_NOT_STICKY;
-//        return START_STICKY;
+//        return START_NOT_STICKY;
+        return START_STICKY;
     }
 
     @Override

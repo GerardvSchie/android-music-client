@@ -12,8 +12,6 @@ import nl.melledijkstra.musicplayerclient.data.DataManager;
 import nl.melledijkstra.musicplayerclient.data.prefs.AppPreferencesHelper;
 import nl.melledijkstra.musicplayerclient.data.prefs.PreferencesHelper;
 import nl.melledijkstra.musicplayerclient.di.ApplicationContext;
-import nl.melledijkstra.musicplayerclient.service.AppPlayerService;
-import nl.melledijkstra.musicplayerclient.service.BaseService;
 
 @Module
 public class ApplicationModule {
@@ -46,24 +44,13 @@ public class ApplicationModule {
         return appPreferencesHelper;
     }
 
-    @Provides
-    @Singleton
-    BaseService provideBaseService(AppPlayerService appPlayerService) {
-        return appPlayerService;
-    }
-
 //    @Provides
 //    @Singleton
 //    BaseService provideBaseService() {
-//        Intent intent = AppPlayerService.getStartIntent(provideContext());
-//        ComponentName name =  provideApplication().getApplicationContext().startService(intent);
-//        provideBaseService().getSystemServiceName(AppPlayerService.class);
-//        return provideApplication().getApplicationContext().getSer
-//    }
-
-//    @Provides
-//    @Singleton
-//    BaseService provideBaseService(Retrofit retrofit) {
-//        return retrofit.create(AppPlayerService.class);
+////        Intent intent = AppPlayerService.getStartIntent(mApplication.getApplicationContext());
+////        mApplication.startService(intent);
+////        AppPlayerService appPlayerService = mApplication.getSystemService(AppPlayerService.class);
+////        return appPlayerService;
+//        return ((AppPlayerService.LocalBinder)service).getService();
 //    }
 }

@@ -17,8 +17,8 @@ import nl.melledijkstra.musicplayerclient.ui.base.BasePresenter;
 public class ConnectPresenter<V extends ConnectMPCView> extends BasePresenter<V> implements ConnectMPCPresenter<V> {
     static final String TAG = "ConnectPresenter";
     @Inject
-    ConnectPresenter(DataManager dataManager, BaseService baseService) {
-        super(dataManager, baseService);
+    ConnectPresenter(DataManager dataManager) {
+        super(dataManager);
 
         IntentFilter mBroadcastFilter = new IntentFilter();
         mBroadcastFilter.addAction(Message.READY.toString());
