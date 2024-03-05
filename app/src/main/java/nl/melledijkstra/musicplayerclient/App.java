@@ -15,8 +15,6 @@ import nl.melledijkstra.musicplayerclient.service.AppPlayerService;
 public class App extends Application {
     @Inject
     DataManager mDataManager;
-//    @Inject
-//    BaseService mBaseService;
     ApplicationComponent mApplicationComponent;
 
     // If app is in DEBUG mode then no connection is needed and dummy data is used
@@ -30,9 +28,10 @@ public class App extends Application {
 
         mApplicationComponent.inject(this);
 
-//        Intent intent = AppPlayerService.getStartIntent(this);
-        startService(new Intent(App.this, AppPlayerService.class));
-        AppPlayerService appPlayerService = getSystemService(AppPlayerService.class);
+////        Intent intent = AppPlayerService.getStartIntent(this);
+//        startService(new Intent(App.this, AppPlayerService.class));
+//        AppPlayerService appPlayerService = getSystemService(AppPlayerService.class);
+//        mApplicationComponent.inject(appPlayerService);
         Log.w("HIHI", "HI");
 
 //        AppPlayerService.appInjector = this;

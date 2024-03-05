@@ -54,6 +54,7 @@ public class SongFragment extends BaseFragment implements SongMPCView, SwipeRefr
         View view = inflater.inflate(R.layout.fragment_songs, container, false);
         setUnbinder(ButterKnife.bind(this, view));
         mPresenter.onAttach(this);
+        mPresenter.connectService(getBaseActivity().mBaseService);
         mSongAdapter.setCallback(this);
         return view;
     }

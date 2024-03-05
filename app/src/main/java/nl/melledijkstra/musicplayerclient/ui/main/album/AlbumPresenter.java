@@ -7,9 +7,10 @@ import nl.melledijkstra.musicplayerclient.service.BaseService;
 import nl.melledijkstra.musicplayerclient.ui.base.BasePresenter;
 
 public class AlbumPresenter<V extends AlbumMPCView> extends BasePresenter<V> implements AlbumMPCPresenter<V> {
+    BaseService mBaseService;
     @Inject
-    public AlbumPresenter(DataManager dataManager, BaseService baseService) {
-        super(dataManager, baseService);
+    public AlbumPresenter(DataManager dataManager) {
+        super(dataManager);
     }
     @Override
     public boolean isConnected() {
@@ -18,5 +19,8 @@ public class AlbumPresenter<V extends AlbumMPCView> extends BasePresenter<V> imp
     @Override
     public void retrieveAlbumList() {
         mBaseService.retrieveAlbumList(mView);
+    }
+    public void connectService(BaseService baseService) {
+        this.mBaseService = baseService;
     }
 }

@@ -67,6 +67,11 @@ public class SettingsActivity extends BaseActivity implements SettingsMPCView {
     }
 
     @Override
+    protected void onServiceConnected2() {
+        // Do nothing
+    }
+
+    @Override
     public void onBackPressed() {
         openMainActivity();
     }

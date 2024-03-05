@@ -11,9 +11,14 @@ import nl.melledijkstra.musicplayerclient.ui.base.BasePresenter;
 
 public class SongPresenter<V extends SongMPCView> extends BasePresenter<V> implements SongMPCPresenter<V> {
     final static String TAG = "SongPresenter";
+    BaseService mBaseService;
+
     @Inject
-    public SongPresenter(DataManager dataManager, BaseService baseService) {
-        super(dataManager, baseService);
+    public SongPresenter(DataManager dataManager) {
+        super(dataManager);
+    }
+    public void connectService(BaseService baseService) {
+        this.mBaseService = baseService;
     }
     @Override
     public boolean isConnected() {

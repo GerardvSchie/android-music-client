@@ -50,6 +50,7 @@ public class ControllerFragment extends BaseFragment implements ControllerMPCVie
         assert component != null : "No service running?";
         component.inject(this);
         mPresenter.onAttach(this);
+        mPresenter.connectService(getBaseActivity().mBaseService);
     }
 
     @Override

@@ -19,11 +19,15 @@ import nl.melledijkstra.musicplayerclient.utils.PlayerTimer;
 
 public class ControllerPresenter<V extends ControllerMPCView> extends BasePresenter<V> implements ControllerMPCPresenter<V> {
     static final String TAG = "ControllerPresenter";
+    BaseService mBaseService;
     PlayerTimer playerTimer = new PlayerTimer();
     @Inject
-    public ControllerPresenter(DataManager dataManager, BaseService baseService) {
-        super(dataManager, baseService);
+    public ControllerPresenter(DataManager dataManager) {
+        super(dataManager);
+    }
 
+    public void connectService(BaseService baseService) {
+        this.mBaseService = baseService;
         IntentFilter mBroadcastFilter = new IntentFilter();
         mBroadcastFilter.addAction(Action.ACTION_NEXT.toString());
 //        mBroadcastFilter.addAction(MelonPlayerService.DISCONNECTED);

@@ -16,10 +16,13 @@ import nl.melledijkstra.musicplayerclient.ui.base.BasePresenter;
 
 public class ConnectPresenter<V extends ConnectMPCView> extends BasePresenter<V> implements ConnectMPCPresenter<V> {
     static final String TAG = "ConnectPresenter";
+    BaseService mBaseService;
     @Inject
     ConnectPresenter(DataManager dataManager) {
         super(dataManager);
-
+    }
+    public void connectService(BaseService baseService) {
+        this.mBaseService = baseService;
         IntentFilter mBroadcastFilter = new IntentFilter();
         mBroadcastFilter.addAction(Message.READY.toString());
         mBroadcastFilter.addAction(Message.CONNECT_FAILED.toString());

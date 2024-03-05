@@ -10,9 +10,10 @@ import nl.melledijkstra.musicplayerclient.ui.base.BasePresenter;
 
 public class MainPresenter<V extends MainMPCView> extends BasePresenter<V> implements MainMPCPresenter<V> {
     static final String TAG = "MainPresenter";
+    BaseService mBaseService;
     @Inject
-    public MainPresenter(DataManager dataManager, BaseService baseService) {
-        super(dataManager, baseService);
+    public MainPresenter(DataManager dataManager) {
+        super(dataManager);
     }
 
     public boolean isConnected() {
@@ -27,5 +28,10 @@ public class MainPresenter<V extends MainMPCView> extends BasePresenter<V> imple
         }
 
         mBaseService.connectPlayerServer(getDataManager().getCurrentHostIP(), getDataManager().getCurrentHostPort());
+    }
+
+    @Override
+    public void connectService(BaseService baseService) {
+        this.mBaseService = baseService;
     }
 }

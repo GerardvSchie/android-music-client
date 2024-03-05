@@ -8,7 +8,7 @@ import nl.melledijkstra.musicplayerclient.ui.base.BasePresenter;
 
 public class SettingsPresenter<V extends SettingsMPCView> extends BasePresenter<V> implements SettingsMPCPresenter<V> {
     @Inject
-    public SettingsPresenter(DataManager dataManager, BaseService baseService) {
-        super(dataManager, baseService);
+    public SettingsPresenter(DataManager dataManager) {
+        super(dataManager);
     }
 }

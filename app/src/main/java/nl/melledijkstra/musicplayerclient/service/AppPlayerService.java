@@ -1,5 +1,6 @@
 package nl.melledijkstra.musicplayerclient.service;
 
+import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -9,16 +10,21 @@ import android.os.Binder;
 import android.os.IBinder;
 import android.util.Log;
 
+import androidx.annotation.Nullable;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
+import javax.inject.Inject;
+
 import io.grpc.ConnectivityState;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.stub.StreamObserver;
+import nl.melledijkstra.musicplayerclient.di.component.DaggerApplicationComponent;
+import nl.melledijkstra.musicplayerclient.di.module.ApplicationModule;
 import nl.melledijkstra.musicplayerclient.grpc.AlbumList;
 import nl.melledijkstra.musicplayerclient.grpc.DataManagerGrpc;
 import nl.melledijkstra.musicplayerclient.grpc.MMPResponse;
@@ -42,20 +48,49 @@ import nl.melledijkstra.musicplayerclient.ui.main.album.AlbumMPCView;
 import nl.melledijkstra.musicplayerclient.ui.main.song.SongMPCView;
 
 // This service interacts with the Player server
-public class AppPlayerService extends BaseService implements PlayerService {
-    private final IBinder mServiceBinder = new LocalBinder();
-    @Override
-    public IBinder onBind(Intent intent) {
-        return mServiceBinder;
-    }
-    // This binder gives the service to the binding object
+public class AppPlayerService extends Service {
     public class LocalBinder extends Binder {
-        public AppPlayerService getService() {
-            return AppPlayerService.this;
+        public PlayerService getService() {
+            return AppPlayerService.this.mPlayerService;
         }
     }
 
-    static final String TAG = "AppService";
+    @Inject
+    PlayerService mPlayerService;
+    private final IBinder mBinder = new LocalBinder();
+    static final String TAG = "AppPlayerService";
+
+    @Override
+    public void onCreate() {
+        Log.e(TAG, "onCreate");
+        super.onCreate();
+        DaggerApplicationComponent.builder().build().inject(this);
+    }
+
+    @Nullable
+    @Override
+    public IBinder onBind(Intent intent) {
+        return mBinder;
+    }
+
+    @Override
+    public boolean onUnbind(Intent intent) {
+        return false;
+    }
+
+//    @Override
+//    public int onStartCommand(Intent intent, int flags, int startId) {
+//        Log.i(TAG, "Serviced started");
+////        return START_NOT_STICKY;
+//        return START_STICKY;
+//    }
+
+    @Override
+    public void onDestroy() {
+        Log.i(TAG, "onDestroy");
+        super.onDestroy();
+        stopForeground(true);
+    }
 
     // gRPC: Stubs to initiate calls to server
     public MusicPlayerGrpc.MusicPlayerStub musicPlayerStub;
@@ -74,12 +109,6 @@ public class AppPlayerService extends BaseService implements PlayerService {
     }
 
     @Override
-    public void onCreate() {
-        Log.e(TAG, "onCreate");
-        super.onCreate();
-    }
-
-    @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.e(TAG, "onStartCommand");
         return super.onStartCommand(intent, flags, startId);
@@ -93,7 +122,6 @@ public class AppPlayerService extends BaseService implements PlayerService {
         return appPlayer;
     }
 
-    @Override
     public void PlayerStateUpdated() {
         playerNotificationManager.showNotification(appPlayer);
     }

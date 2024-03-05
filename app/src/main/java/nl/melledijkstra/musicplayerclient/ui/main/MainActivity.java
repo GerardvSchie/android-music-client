@@ -248,4 +248,9 @@ public class MainActivity extends BaseActivity implements MainMPCView {
                 .add(R.id.fragment_music_controls, controllerFragment)
                 .commit();
     }
+
+    @Override
+    protected void onServiceConnected2() {
+        mPresenter.connectService(mBaseService);
+    }
 }

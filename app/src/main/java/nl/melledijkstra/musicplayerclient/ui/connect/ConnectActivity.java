@@ -18,6 +18,7 @@ import javax.inject.Inject;
 import butterknife.ButterKnife;
 import nl.melledijkstra.musicplayerclient.App;
 import nl.melledijkstra.musicplayerclient.R;
+import nl.melledijkstra.musicplayerclient.service.BaseService;
 import nl.melledijkstra.musicplayerclient.ui.base.BaseActivity;
 import nl.melledijkstra.musicplayerclient.ui.main.MainActivity;
 import nl.melledijkstra.musicplayerclient.ui.settings.SettingsActivity;
@@ -132,6 +133,11 @@ public class ConnectActivity extends BaseActivity implements ConnectMPCView {
         mBtnConnect = requireViewById(R.id.button_connect);
         mBtnConnect.requestFocus();
         mBtnConnect.setOnClickListener(this::onConnectClick);
+    }
+
+    @Override
+    protected void onServiceConnected2() {
+        mPresenter.connectService(mBaseService);
     }
 
     public void onConnectClick(View v) {

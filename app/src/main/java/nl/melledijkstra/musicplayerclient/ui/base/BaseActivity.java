@@ -17,11 +17,12 @@ import nl.melledijkstra.musicplayerclient.di.module.ActivityModule;
 import nl.melledijkstra.musicplayerclient.service.AppPlayerService;
 import nl.melledijkstra.musicplayerclient.service.BaseService;
 
-public abstract class BaseActivity extends AppCompatActivity implements MPCView, BaseFragment.Callback {
+public abstract class BaseActivity extends AppCompatActivity implements MPCView, BaseFragment.Callback, ServiceConnection {
     ActivityComponent mActivityComponent;
-    BaseService mBaseService;
+    public BaseService mBaseService;
     protected boolean isBound;
     Unbinder mUnbinder;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,7 +34,8 @@ public abstract class BaseActivity extends AppCompatActivity implements MPCView,
                 .build();
 
         Intent intent = AppPlayerService.getStartIntent(this);
-        bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
+        startService(intent);
+        bindService(intent, serviceConnection, Context.BIND_IMPORTANT);
     }
 
     public ActivityComponent getActivityComponent() {
@@ -64,17 +66,18 @@ public abstract class BaseActivity extends AppCompatActivity implements MPCView,
 
     protected abstract void setUp();
 
-    private ServiceConnection serviceConnection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
-            AppPlayerService.LocalBinder binder = (AppPlayerService.LocalBinder) iBinder;
-            mBaseService = binder.getService();
-            isBound = true;
-        }
+    @Override
+    public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
 
-        @Override
-        public void onServiceDisconnected(ComponentName componentName) {
-            isBound = false;
-        }
-    };
+        AppPlayerService.LocalBinder binder = (AppPlayerService.LocalBinder) iBinder;
+        mBaseService = binder.getService();
+        isBound = true;
+    }
+
+    @Override
+    public void onServiceDisconnected(ComponentName componentName) {
+        isBound = false;
+    }
+
+    abstract protected void onServiceConnected2();
 }

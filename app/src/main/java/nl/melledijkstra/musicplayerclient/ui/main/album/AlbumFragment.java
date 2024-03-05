@@ -53,6 +53,7 @@ public class AlbumFragment extends BaseFragment implements AlbumMPCView,
         View view = inflater.inflate(R.layout.fragment_albums, container, false);
         setUnbinder(ButterKnife.bind(this, view));
         mPresenter.onAttach(this);
+        mPresenter.connectService(getBaseActivity().mBaseService);
         return view;
     }
 

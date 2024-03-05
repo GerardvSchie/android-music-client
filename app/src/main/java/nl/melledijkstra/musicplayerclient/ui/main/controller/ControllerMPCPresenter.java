@@ -1,5 +1,6 @@
 package nl.melledijkstra.musicplayerclient.ui.main.controller;
 
+import nl.melledijkstra.musicplayerclient.service.BaseService;
 import nl.melledijkstra.musicplayerclient.service.player.AppPlayer;
 import nl.melledijkstra.musicplayerclient.ui.base.MPCPresenter;
 
@@ -13,4 +14,5 @@ public interface ControllerMPCPresenter<V extends ControllerMPCView> extends MPC
     void changePosition(int position);
     void changeVolume(int volume);
     AppPlayer appPlayer();
+    void connectService(BaseService baseService);
 }
